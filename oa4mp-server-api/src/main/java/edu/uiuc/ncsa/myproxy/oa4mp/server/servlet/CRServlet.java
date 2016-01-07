@@ -1,24 +1,23 @@
 package edu.uiuc.ncsa.myproxy.oa4mp.server.servlet;
 
 import edu.uiuc.ncsa.myproxy.MPConnectionProvider;
-import edu.uiuc.ncsa.myproxy.MPSingleConnectionProvider;
 import edu.uiuc.ncsa.myproxy.MyProxyConnectable;
-import edu.uiuc.ncsa.myproxy.oa4mp.server.util.JGlobusUtil;
 import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.exceptions.ConnectionException;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
-import edu.uiuc.ncsa.security.core.util.DebugUtil;
 import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
 import edu.uiuc.ncsa.security.delegation.token.AccessToken;
 import edu.uiuc.ncsa.security.delegation.token.MyX509Certificates;
 import edu.uiuc.ncsa.security.util.pkcs.CertUtil;
 import edu.uiuc.ncsa.security.util.pkcs.MyPKCS10CertRequest;
+import edu.uiuc.ncsa.security.util.pkcs.ProxyUtil;
 
 import javax.security.auth.x500.X500Principal;
 import javax.servlet.http.HttpServletRequest;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
+import java.util.Collections;
 import java.util.LinkedList;
 
 /**
@@ -61,6 +60,8 @@ public abstract class CRServlet extends MyProxyDelegationServlet {
 
         KeyPair keyPair = null;
         if (trans.getClient().isProxyLimited()) {
+            // NOTE: we will create a new keypair and CSR for the extra limited proxy
+            // while we use the original CSR for doing the myproxy call
             info("3.b. starting proxy limited for " + trans.getClient().getIdentifier() + ". Generating keypair and cert request.");
             try {
                 keyPair = getServiceEnvironment().getKeyPair();
@@ -70,30 +71,34 @@ public abstract class CRServlet extends MyProxyDelegationServlet {
             }
 
         }
+        // This will do the myproxy callout
         LinkedList<X509Certificate> certs = getX509Certificates(trans, localCertRequest, statusString);
         debug("3.b. Got cert from server, count=" + certs.size());
-        LinkedList<X509Certificate> certList = new LinkedList<>();
-        // If it is a limited cert, sign it
+        // If we want limited proxies, add another proxy delegation, since
+        // myproxy GET cannot produce a limited proxy.
+        // Use the original CSR and sign with the new private key which now
+        // belongs to the cert retrieved from the myproxy.
         if (trans.getClient().isProxyLimited()) {
             info("3.b. Limited proxy for client " + trans.getClient().getIdentifier() + ", creating limited cert and signing it.");
-            certList.addAll(certs);
-            certList.addFirst(JGlobusUtil.createProxyCertificate(certs.getLast(),
-                    keyPair.getPrivate(), trans.getCertReq().getPublicKey(),
-                    (int) (trans.getLifetime() / 1000
-                    )));
-            certs = certList;
+            X509Certificate[] certList = ProxyUtil.generateProxy(trans.getCertReq(), keyPair.getPrivate(), certs.toArray(new X509Certificate[0]), trans.getLifetime(), true);
+            certs = new LinkedList<>();
+            Collections.addAll(certs, certList);
         }
         debug("3.b. Preparing to return cert chain of " + certs.size() + " to client.");
         MyX509Certificates myCerts = new MyX509Certificates(certs);
         trans.setProtectedAsset(myCerts);
-        String userName = trans.getUsername();
+
+        // Not clear why userName is retrieved
+//      String userName = trans.getUsername();
 
         if (getServiceEnvironment().getAuthorizationServletConfig().isReturnDnAsUsername()) {
+            String userName;
             if (myCerts.getX509Certificates().length > 0) {
                 X500Principal x500Principal = myCerts.getX509Certificates()[0].getSubjectX500Principal();
                 userName = x500Principal.getName();
                 if (getServiceEnvironment().getAuthorizationServletConfig().isConvertDNToGlobusID()) {
-                    userName = JGlobusUtil.toGlobusID(userName);
+                    // use local copy of JGlobus's CertificateUtil.toGlobusID(String dn)
+                    userName = toGlobusID(userName);
                 }
 
                 debug(statusString + ": USERNAME = " + userName);
@@ -104,7 +109,8 @@ public abstract class CRServlet extends MyProxyDelegationServlet {
             info("3.c. Set username returned to client to first certificate's DN: " + userName);
         }
 
-        trans.setUsername(userName); // Fixes OAUTH-102 username might not be set in some cases, so just reset it here.
+        // Not clear why userName is set, it's either set in the if clause above, or is unchanged
+//      trans.setUsername(userName); // Fixes OAUTH-102 username might not be set in some cases, so just reset it here.
 
         // Our response is a simple ok, since otherwise exceptions are thrown. No need to set this since that is the default.
         trans.setVerifier(MyProxyDelegationServlet.getServiceEnvironment().getTokenForge().getVerifier());
@@ -139,7 +145,7 @@ public abstract class CRServlet extends MyProxyDelegationServlet {
             throw new GeneralException("Error: MyProxy service returned no certs.");
         }
 
-        info(statusString + "Got cert from MyProxy, issuing a limited proxy & storing it.");
+        info(statusString + "Got cert from MyProxy.");
         return certs;
     }
 
@@ -173,5 +179,67 @@ public abstract class CRServlet extends MyProxyDelegationServlet {
         return mpc;
     }
 
+    /**
+     * Converts DN of the form "CN=A, OU=B, O=C" into Globus
+     * format "/CN=A/OU=B/O=C".<BR>
+     * This function might return incorrect Globus-formatted ID when one of
+     * the RDNs in the DN contains commas.
+     * <P>
+     * NOTE: this is copy/paste from
+     * <A href="https://github.com/jglobus/JGlobus/blame/master/ssl-proxies/src/main/java/org/globus/gsi/util/CertificateUtil.java">JGlobus</A>
+     * @see #toGlobusID(String, boolean)
+     *
+     * @param dn the DN to convert to Globus format.
+     * @return the converted DN in Globus format.
+     */
+    public static String toGlobusID(String dn) {
+        return toGlobusID(dn, true);
+    }
+
+    /**
+     * Converts DN of the form "CN=A, OU=B, O=C" into Globus
+     * format "/CN=A/OU=B/O=C" or "/O=C/OU=B/CN=A" depending on the
+     * <code>noreverse</code> option. If <code>noreverse</code> is true
+     * the order of the DN components is not reveresed - "/CN=A/OU=B/O=C" is
+     * returned. If <code>noreverse</code> is false, the order of the
+     * DN components is reversed - "/O=C/OU=B/CN=A" is returned. <BR>
+     * This function might return incorrect Globus-formatted ID when one of
+     * the RDNs in the DN contains commas.
+     * <P>
+     * NOTE: this is copy/paste from
+     * <A href="https://github.com/jglobus/JGlobus/blame/master/ssl-proxies/src/main/java/org/globus/gsi/util/CertificateUtil.java">JGlobus</A>
+     *
+     * @param dn the DN to convert to Globus format.
+     * @param noreverse the direction of the conversion.
+     * @return the converted DN in Globus format.
+     */
+    public static String toGlobusID(String dn, boolean noreverse) {
+        if (dn == null) {
+            return null;
+        }
+
+        StringBuilder buf = new StringBuilder();
+
+        String[] tokens = dn.split(",");
+        if (noreverse) {
+            for (int i = 0; i < tokens.length; i++) {
+                String token = tokens[i].trim();
+                if (!token.isEmpty()) {
+                    buf.append("/");
+                    buf.append(token.trim());
+                }
+            }
+        } else {
+            for (int i = tokens.length - 1; i >= 0; i--) {
+                String token = tokens[i].trim();
+                if (!token.isEmpty()) {
+                    buf.append("/");
+                    buf.append(token.trim());
+                }
+            }
+        }
+
+        return buf.toString();
+    }
 
 }

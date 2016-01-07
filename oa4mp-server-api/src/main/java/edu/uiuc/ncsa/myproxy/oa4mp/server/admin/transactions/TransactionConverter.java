@@ -9,15 +9,20 @@ import edu.uiuc.ncsa.security.delegation.server.storage.ClientStore;
 import edu.uiuc.ncsa.security.delegation.server.storage.support.ServiceTransactionConverter;
 import edu.uiuc.ncsa.security.delegation.storage.Client;
 import edu.uiuc.ncsa.security.delegation.token.MyX509Certificates;
+import edu.uiuc.ncsa.security.delegation.token.MyX509Proxy;
 import edu.uiuc.ncsa.security.delegation.token.TokenForge;
 import edu.uiuc.ncsa.security.storage.data.ConversionMap;
 import edu.uiuc.ncsa.security.storage.data.SerializationKeys;
 import edu.uiuc.ncsa.security.util.pkcs.CertUtil;
+import edu.uiuc.ncsa.security.util.pkcs.KeyUtil;
+import edu.uiuc.ncsa.security.util.pkcs.ProxyUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
+import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
 import static edu.uiuc.ncsa.security.util.pkcs.CertUtil.fromPEM;
 
@@ -60,9 +65,19 @@ public class TransactionConverter<V extends OA4MPServiceTransaction> extends Ser
         String y = map.getString(getDSTK().cert());
         if (y != null && 0 < y.length()) {
             try {
-                ByteArrayInputStream baos = new ByteArrayInputStream(y.getBytes("UTF-8"));
-                MyX509Certificates myCert = new MyX509Certificates(fromPEM(baos));
-                t.setProtectedAsset(myCert);
+                // handle deserialization differently for certificate chains and proxies.
+                if ( y.contains(KeyUtil.BEGIN_PRIVATE_KEY) ) {
+                    X509Certificate[] certs = ProxyUtil.certificatesFromProxy(y.getBytes("UTF-8"));
+                    PrivateKey key = ProxyUtil.keyFromProxy(y.getBytes("UTF-8"));
+
+                    MyX509Proxy proxy  = new MyX509Proxy(certs, key);
+                    t.setProtectedAsset(proxy);
+
+                } else {
+                        ByteArrayInputStream baos = new ByteArrayInputStream(y.getBytes("UTF-8"));
+                        MyX509Certificates myCert = new MyX509Certificates(fromPEM(baos));
+                        t.setProtectedAsset(myCert);
+                }
             } catch (CertificateException e) {
                 throw new GeneralException("Error decoding certificate", e);
             } catch (UnsupportedEncodingException e) {
