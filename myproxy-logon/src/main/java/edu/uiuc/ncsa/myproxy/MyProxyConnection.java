@@ -6,6 +6,7 @@ import java.util.LinkedList;
 
 import edu.uiuc.ncsa.myproxy.exception.MyProxyCertExpiredExcpetion;
 import edu.uiuc.ncsa.myproxy.exception.MyProxyException;
+import edu.uiuc.ncsa.security.core.Identifiable;
 import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.exceptions.ConnectionException;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
@@ -203,7 +204,10 @@ public class MyProxyConnection implements MyProxyConnectable {
     }
 
 
-
+    @Override
+    public Identifiable clone() {
+        return null;
+    }
 
 	
 }
