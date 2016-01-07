@@ -1,15 +1,18 @@
 package edu.uiuc.ncsa.myproxy;
 
+import edu.uiuc.ncsa.myproxy.exception.MyProxyException;
 import edu.uiuc.ncsa.security.core.Identifiable;
 import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.exceptions.ConnectionException;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
+import edu.uiuc.ncsa.security.core.exceptions.NotImplementedException;
 import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 import edu.uiuc.ncsa.security.util.pkcs.MyPKCS10CertRequest;
 
 import javax.net.ssl.KeyManagerFactory;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.LinkedList;
 
@@ -88,6 +91,59 @@ public class MPSingleConnectionProvider<T extends MyProxyConnectable> implements
         }
 
         @Override
+        public void doPut(X509Certificate[] chain, PrivateKey privateKey) throws MyProxyException {
+            throw new NotImplementedException();
+        }
+
+        @Override
+        public void doStore(X509Certificate[] chain, PrivateKey privateKey) throws MyProxyException {
+            throw new NotImplementedException();
+       }
+
+        @Override
+        public MyProxyCredentialInfo doInfo() {
+            throw new NotImplementedException();
+        }
+
+        @Override
+        public void setRetriever(String retriever) {
+            throw new NotImplementedException();
+        }
+
+        @Override
+        public void setRenewer(String renewer) {
+            throw new NotImplementedException();
+        }
+
+        @Override
+        public void setVoname(String voname) {
+            if (myProxyLogon != null && voname != null) {
+                if ( myProxyLogon.getVoname() == null || ! myProxyLogon.getVoname().equals(voname) ) {
+                    // don't reset the connection, instead just close it.
+                    // myProxyLogon.logon() will open in on demand anyway
+                    myProxyLogon.setVoname(voname);
+                    if (myProxyLogon.isConnected()) {
+                        close();
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void setVomses(String vomses) {
+            if (myProxyLogon != null && vomses != null) {
+                if ( myProxyLogon.getVomses() == null || ! myProxyLogon.getVomses().equals(vomses) ) {
+                    // don't reset the connection, instead just close it.
+                    // myProxyLogon.logon() will open in on demand anyway
+                    myProxyLogon.setVomses(vomses);
+                    if (myProxyLogon.isConnected()) {
+                        close();
+                    }
+                }
+            }
+        }
+
+        @Override
         public void setLifetime(long certLifetime) {
             if (myProxyLogon != null) {
                 int newLifetime = (int) (certLifetime / 1000);
@@ -96,7 +152,6 @@ public class MPSingleConnectionProvider<T extends MyProxyConnectable> implements
                     myProxyLogon.setLifetime(newLifetime);
                     if (myProxyLogon.isConnected()) {
                         close();
-                        open();
                     }
                 }
             }
@@ -187,21 +242,21 @@ public class MPSingleConnectionProvider<T extends MyProxyConnectable> implements
 
     @Override
     public T get() {
-        MyProxyLogon myProxyLogon = null;
+        MyProxy myproxy = null;
         if (facade == null) {
-            myProxyLogon = new MyProxyLogon();
+            myproxy = new MyProxy();
         } else {
-            myProxyLogon = new MyProxyLogon(facade, serverDN);
+            myproxy = new MyProxy(facade, serverDN);
         }
-        myProxyLogon.setHost(hostname);
+        myproxy.setHost(hostname);
         // Fix for CIL-153, CIL-147
-        myProxyLogon.setLifetime((int) (lifetime / 1000));
-        myProxyLogon.setPort(port);
-        myProxyLogon.setSocketTimeout(socketTimeout);
-        myProxyLogon.setUsername(username);
-        myProxyLogon.setPassphrase(password);
-        myProxyLogon.setKeyManagerFactory(keyManagerFactory);
-        return (T) new MyProxyLogonConnection(myProxyLogon);
+        myproxy.setLifetime((int) (lifetime / 1000));
+        myproxy.setPort(port);
+        myproxy.setSocketTimeout(socketTimeout);
+        myproxy.setUsername(username);
+        myproxy.setPassphrase(password);
+        myproxy.setKeyManagerFactory(keyManagerFactory);
+        return (T) new MyProxyConnection(myproxy);
     }
 
 }

@@ -5,6 +5,8 @@ import edu.uiuc.ncsa.security.core.exceptions.NFWException;
 import edu.uiuc.ncsa.security.delegation.storage.Client;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2Errors;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2GeneralError;
+import edu.uiuc.ncsa.security.oauth_2_0.OA2RedirectableError;
+
 import org.apache.http.HttpStatus;
 
 /**
@@ -43,6 +45,7 @@ public class OA2ClientCheck {
 
         if (!foundCB) {
             throw new OA2GeneralError(OA2Errors.INVALID_REQUEST, "The given redirect \"" + redirect + "\" is not valid for this client", HttpStatus.SC_BAD_REQUEST);
+            //throw new OA2RedirectableError(OA2Errors.INVALID_REQUEST, "The given redirect is not valid for this client",new String("" + HttpStatus.SC_BAD_REQUEST));
 
             //throw new GeneralException("Error: The given redirect is not valid for this client");
         }
