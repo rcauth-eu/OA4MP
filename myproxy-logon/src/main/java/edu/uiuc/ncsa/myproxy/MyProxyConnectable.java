@@ -1,8 +1,10 @@
 package edu.uiuc.ncsa.myproxy;
 
+import edu.uiuc.ncsa.myproxy.exception.MyProxyException;
 import edu.uiuc.ncsa.security.core.cache.Cacheable;
 import edu.uiuc.ncsa.security.util.pkcs.MyPKCS10CertRequest;
 
+import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.LinkedList;
 
@@ -34,4 +36,32 @@ public interface MyProxyConnectable extends Cacheable{
     public LinkedList<X509Certificate> getCerts(byte[] pkcs10CertRequest);
 
     public void setLifetime(long certLifetime);
+    
+    public void setVoname(String voname);
+    public void setVomses(String vomses);
+    public void setRetriever(String retriever);
+    public void setRenewer(String renewer);
+    
+    
+    /**
+     * Retrieves information of the cerdentials stored under a specific user
+     */
+    public MyProxyCredentialInfo doInfo() throws MyProxyException;
+    
+    /**
+     * Does a MyProxy PUT request, uploading a Proxy Certificate created from the provided
+     * credentials 
+     * 
+     * @param chain this will be included in the resulting proxy
+     * @param privateKey used for signing the new proxy certificate
+     */
+    public void doPut(X509Certificate[] chain, PrivateKey privateKey) throws MyProxyException;
+    
+    /**
+     * Does a MyProxy STORE request, uploading a Proxy Certificate provided in the parameters 
+     * 
+     * @param chain The first certificate in the chain is considered to be the proxy
+     * @param privateKey Private Key matching the proxy (first certificate in the chain)
+     */
+    public void doStore(X509Certificate[] chain, PrivateKey privateKey) throws MyProxyException;    
 }

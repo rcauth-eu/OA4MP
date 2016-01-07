@@ -1,14 +1,14 @@
 /*
  * Copyright 2007 The Board of Trustees of the University of Illinois.
  * All rights reserved.
- * 
+ *
  * Developed by:
- * 
+ *
  *   MyProxy Team
  *   National Center for Supercomputing Applications
  *   University of Illinois
  *   http://myproxy.ncsa.uiuc.edu/
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
  * "Software"), to deal with the Software without restriction, including
@@ -16,19 +16,19 @@
  * distribute, sublicense, and/or sell copies of the Software, and to
  * permit persons to whom the Software is furnished to do so, subject to
  * the following conditions:
- * 
+ *
  *   Redistributions of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimers.
- * 
+ *
  *   Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimers in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  *   Neither the names of the National Center for Supercomputing
  *   Applications, the University of Illinois, nor the names of its
  *   contributors may be used to endorse or promote products derived from
  *   this Software without specific prior written permission.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -39,6 +39,8 @@
  */
 package edu.uiuc.ncsa.myproxy;
 
+import edu.uiuc.ncsa.myproxy.exception.MyProxyException;
+import edu.uiuc.ncsa.myproxy.exception.MyProxyVOMSException;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.util.HostUtil;
 import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
@@ -47,6 +49,7 @@ import edu.uiuc.ncsa.security.util.pkcs.KeyUtil;
 import edu.uiuc.ncsa.security.util.pkcs.MyPKCS10CertRequest;
 import edu.uiuc.ncsa.security.util.ssl.MyTrustManager;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 
 import javax.net.ssl.*;
 import javax.security.auth.login.FailedLoginException;
@@ -116,19 +119,21 @@ public class MyProxyLogon {
 
     long socketTimeout = 0L;
 
-    private final static int b64linelen = 64;
-    private final static String X509_USER_PROXY_FILE = "x509up_u";
-    private final static String VERSION = "VERSION=MYPROXYv2";
-    private final static String GETCOMMAND = "COMMAND=0";
-    private final static String TRUSTROOTS = "TRUSTED_CERTS=";
-    private final static String USERNAME = "USERNAME=";
-    private final static String PASSPHRASE = "PASSPHRASE=";
-    private final static String LIFETIME = "LIFETIME=";
-    private final static String CREDNAME = "CRED_NAME=";
-    private final static String RESPONSE = "RESPONSE=";
-    private final static String ERROR = "ERROR=";
-    private final static String DN = "CN=ignore";
-    private final static String TRUSTED_CERT_PATH = "/.globus/certificates";
+    protected final static int b64linelen = 64;
+    protected final static String X509_USER_PROXY_FILE = "x509up_u";
+    protected final static String VERSION = "VERSION=MYPROXYv2";
+    protected final static String GETCOMMAND = "COMMAND=0";
+    protected final static String TRUSTROOTS = "TRUSTED_CERTS=";
+    protected final static String USERNAME = "USERNAME=";
+    protected final static String PASSPHRASE = "PASSPHRASE=";
+    protected final static String LIFETIME = "LIFETIME=";
+    protected final static String VONAME = "VONAME=";
+    protected final static String VOMSES = "VOMSES=";
+    protected final static String CREDNAME = "CRED_NAME=";
+    protected final static String RESPONSE = "RESPONSE=";
+    protected final static String ERROR = "ERROR=";
+    protected final static String DN = "CN=ignore";
+    protected final static String TRUSTED_CERT_PATH = "/.globus/certificates";
 
     public final int DEFAULT_KEY_SIZE = 2048;
     protected int keySize = DEFAULT_KEY_SIZE;
@@ -143,6 +148,8 @@ public class MyProxyLogon {
     protected String passphrase;
     protected int port = 7512;
     protected int lifetime = 43200;
+    protected String voname;
+    protected String vomses;
     protected boolean requestTrustRoots = false;
     protected SSLSocket socket;
     protected BufferedInputStream socketIn;
@@ -340,6 +347,49 @@ public class MyProxyLogon {
     }
 
     /**
+     * Gets the vomses string sent to MyProxy
+     *
+     * @return vomses string
+     */
+    public String getVomses() {
+        return vomses;
+    }
+
+    /**
+     * Sets the vomses string sent to MyProxy. By setting this you can specify
+     * VOMS server information under 'vomses' file format :
+     *
+     * "nickname" "voms-server" "port" "server host dn" "voname" ["gt ver"]
+     *
+     * Leave this unset if you don't want to send a vomses string
+     *
+     * @param vomses string
+     */
+    public void setVomses(String vomses) {
+        this.vomses = vomses;
+    }
+
+    /**
+     * Gets the voname string sent to MyProxy.
+     *
+     * @return voname string
+     */
+    public String getVoname() {
+        return voname;
+    }
+
+    /**
+     * Sets the voname string sent to MyProxy. By setting this you can specify
+     * the name of the VO (together with  requested group and role information)
+     * which you would like to have in your proxy
+     *
+     * @param voname string
+     */
+    public void setVoname(String voname) {
+        this.voname = voname;
+    }
+
+    /**
      * Gets the certificates returned from the MyProxy server by
      * getCredentials().
      *
@@ -446,6 +496,9 @@ public class MyProxyLogon {
         if (t instanceof GeneralSecurityException) {
             throw (GeneralSecurityException) t;
         }
+        if (t instanceof MyProxyException) {
+            throw (GeneralException) t;
+        }
 
         throw new GeneralSecurityException("Error: " + msg, t);
     }
@@ -463,7 +516,7 @@ public class MyProxyLogon {
      * Set the key manager factory for use in client-side SSLSocket
      * certificate-based authentication to the MyProxy server.
      * Call this before connect().
-     *
+     *disconnect
      * @param keyManagerFactory Key manager factory to use
      */
     public void setKeyManagerFactory(KeyManagerFactory keyManagerFactory) {
@@ -525,6 +578,16 @@ public class MyProxyLogon {
             this.socketOut.write(LIFETIME.getBytes());
             this.socketOut.write(Integer.toString(this.lifetime).getBytes());
             this.socketOut.write('\n');
+            if (this.voname != null) {
+                this.socketOut.write(VONAME.getBytes());
+                this.socketOut.write(this.voname.getBytes());
+                this.socketOut.write('\n');
+            }
+            if (this.vomses != null) {
+                this.socketOut.write(VOMSES.getBytes());
+                this.socketOut.write(this.vomses.getBytes());
+                this.socketOut.write('\n');
+            }
             if (this.credname != null) {
                 this.socketOut.write(CREDNAME.getBytes());
                 this.socketOut.write(this.credname.getBytes());
@@ -609,6 +672,9 @@ public class MyProxyLogon {
 
             this.socketOut.write(derEncodedCertRequest);
             this.socketOut.flush();
+
+            //look ahead for returned errors instead of certificates
+            this.socketIn = lookAheadErrorChecker(socketIn);
 
             int numCertificates = this.socketIn.read();
             if (numCertificates == -1) {
@@ -924,7 +990,7 @@ public class MyProxyLogon {
         }
     }
 
-    private String readLine(InputStream is) throws IOException {
+    protected String readLine(InputStream is) throws IOException {
         StringBuffer sb = new StringBuffer();
         for (int c = is.read(); c > 0 && c != '\n'; c = is.read()) {
             sb.append((char) c);
@@ -963,6 +1029,69 @@ public class MyProxyLogon {
 
     public String toString() {
         return getClass().getSimpleName() + "[host=" + getHost() + ", port=" + getPort() + ", for username=" + getUsername() + "]";
+    }
+
+    /**
+     *  The lookAheadErrorChecker can be used to detect error messages returned by the MyProxy server.
+     *  Errors are recognized by the VERSION & RESPONSE=1 header. A new exception is thrown in case
+     *  an error is encountered.
+     *
+     *  This method is useful for detecting MyProxy server side errors (especially in context of the GET
+     *  command with VOMS attributes.
+     *
+     *  @param in The input stream used as a source. This will get consumed by this method!
+     *  @return An untouched copy of in containing its data for further processing.
+     */
+    protected BufferedInputStream lookAheadErrorChecker(InputStream in) throws Throwable {
+        //Make a copy of the input stream so that we can examine its content without
+        //totally consuming it
+        ByteArrayOutputStream bufferedStream = new ByteArrayOutputStream();
+
+        try {
+            //This copy command will consume everything left in the 'in' stream and save it
+            //into a buffer (buggeredStream). When MyProxy returns an error instead of the
+            //expected response, often the connection get broken off, which will result in
+            //an exception here. Nevertheless, bufferedStream is expected to be filled with
+            //the error message sent by MyProxy before the connection terminated.
+            IOUtils.copy(in, bufferedStream);
+        } catch (Exception e) {
+            //make sure something got read by the previous copy command
+            if ( bufferedStream.size() <= 0 ) {
+                throw new MyProxyException("Faild to read error response from MyProxy!");
+            }
+        }
+
+        //Create a new input stream and check for any error messages
+        InputStream lookAheadIN = new ByteArrayInputStream(bufferedStream.toByteArray());
+        String lookAheadVersion = readLine(lookAheadIN);
+        String lookAheadResponse = readLine(lookAheadIN);
+
+        if (lookAheadVersion.endsWith(VERSION) &&
+            lookAheadResponse.equals(RESPONSE + "1")) {
+
+            String error = null;
+            StringBuffer errorMessage = new StringBuffer();
+            while ((error = readLine(lookAheadIN)) != null) {
+                errorMessage.append(error + " ");
+            }
+
+            String errorString = errorMessage.toString();
+
+            if ( this.mlf != null ) {
+                mlf.debug("Received an error message from MyProxy: " + errorString);
+            }
+
+            if (errorString.contains("VOMS") || errorString.contains("VO")) {
+                throw new MyProxyVOMSException(errorString);
+            } else {
+                throw new MyProxyException(errorString);
+            }
+        }
+
+        //The initial 'in' stream got consumed by the copying. A new stream has to be constructed from
+        //the originally copied data.
+        return new BufferedInputStream(new ByteArrayInputStream(bufferedStream.toByteArray()));
+
     }
 
 }

@@ -15,6 +15,26 @@ public class OA2Asset extends Asset {
     public OA2Asset(Identifier identifier) {
         super(identifier);
     }
+
+    String voname = null;
+    String vomses = null;
+
+    public String getVomses() {
+        return vomses;
+    }
+
+    public String getVoname() {
+        return voname;
+    }
+
+    public void setVomses(String vomses) {
+        this.vomses = vomses;
+    }
+
+    public void setVoname(String voname) {
+        this.voname = voname;
+    }
+
     AccessToken accessToken;
     RefreshToken refreshToken;
 

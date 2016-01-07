@@ -41,6 +41,7 @@ public interface ClientXMLTags extends StorageConfigurationTags{
     public static final String SUCCESS_PAGE_PATH = "successPagePath";
     public static final String OIDC_ENABLED = "OIDCEnabled";
     public static final String DEBUG = "debug";
+    public static final String REQUEST_PROXIES = "requestProxies";
     /**
      * Tag identifying the asset store.
      */
