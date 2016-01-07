@@ -31,6 +31,8 @@ public abstract class ACS2 extends CRServlet {
         doDelegation(httpServletRequest, httpServletResponse);
     }
 
+    protected void prepare(ServiceTransaction transaction, HttpServletRequest request, HttpServletResponse response) throws Throwable {
+    }
 
     protected void doDelegation(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Throwable {
         info("6.a. Starting to process cert request");
@@ -43,8 +45,13 @@ public abstract class ACS2 extends CRServlet {
         PAResponse paResponse = (PAResponse) getPAI().process(paRequest);
         debug("6.a. " + statusString);
         ServiceTransaction t = verifyAndGet(paResponse);
+
+        prepare(t,httpServletRequest,httpServletResponse);
+
         Map params = httpServletRequest.getParameterMap();
 
+        // For /getproxy the CSR is already set, still not very clean to do this
+        // check here.
         if (t.getCertReq() == null) {
             //CIL-409 fix -- fail immediately if the cert request is missing
             if(!params.containsKey(CONST(ServiceConstantKeys.CERT_REQUEST_KEY))){
