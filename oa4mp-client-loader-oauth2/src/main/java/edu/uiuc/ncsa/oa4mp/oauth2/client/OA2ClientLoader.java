@@ -32,6 +32,7 @@ import static edu.uiuc.ncsa.myproxy.oa4mp.client.ClientEnvironment.CALLBACK_URI_
  * on 6/4/13 at  4:34 PM
  */
 public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClientLoader<T> {
+    public static final String PROXY_ENDPOINT = "getproxy";
 
     public OA2ClientLoader(ConfigurationNode node) {
         super(node);
@@ -88,6 +89,7 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
                     getDSP(),
                     getAssetStoreProvider(),
                     isShowRedirectPage(),
+                    requestProxies(),
                     getErrorPagePath(),
                     getRedirectPagePath(),
                     getSuccessPagePath(),
@@ -173,6 +175,12 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
         return assetURI;
     }
 
+    protected URI getProxyAssetURI() {
+        String x = getCfgValue(ClientXMLTags.ASSET_URI);
+        checkProtocol(x);
+        return createServiceURI(x, getBaseURI(), PROXY_ENDPOINT);
+    }
+
     private boolean accessTokenURIparsed = false;
     private URI accessTokenURI = null;
 
@@ -248,6 +256,18 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
 
     }
 
+    private Boolean requestProxies = null;
+    protected boolean requestProxies() {
+        if(requestProxies == null) {
+            String temp = getCfgValue(ClientXMLTags.REQUEST_PROXIES);
+            if (temp == null || temp.length() == 0)
+                requestProxies=false;
+            else
+                requestProxies=Boolean.parseBoolean(getCfgValue(ClientXMLTags.REQUEST_PROXIES));
+        }
+        return requestProxies;
+    }
+
     @Override
     public T createInstance() {
 
@@ -294,17 +314,35 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
     @Override
     protected Provider<DelegationService> getDSP() {
         if (dsp == null) {
-            dsp = new Provider<DelegationService>() {
-                @Override
-                public DelegationService get() {
-                    return new DS2(new AGServer2(createServiceClient(getAuthzURI())), // as per spec, request for AG comes through authz endpoint.
-                            new ATServer2(createServiceClient(getAccessTokenURI()), getWellKnownURI(), isOIDCEnabled()),
-                            new PAServer2(createServiceClient(getAssetURI())),
-                            new UIServer2(createServiceClient(getUIURI())),
-                            new RTServer2(createServiceClient(getAccessTokenURI()), getWellKnownURI(), isOIDCEnabled()) // as per spec, refresh token server is at same endpoint as access token server.
-                    );
-                }
-            };
+            if ( requestProxies() ) {
+
+                dsp = new Provider<DelegationService>() {
+                    @Override
+                    public DelegationService get() {
+                        return new DS2(new AGServer2(createServiceClient(getAuthzURI())), // as per spec, request for AG comes through authz endpoint.
+                                new ATServer2(createServiceClient(getAccessTokenURI()), getWellKnownURI(), isOIDCEnabled()),
+                                new PPServer2(createServiceClient(getProxyAssetURI())),
+                                new UIServer2(createServiceClient(getUIURI())),
+                                new RTServer2(createServiceClient(getAccessTokenURI()), getWellKnownURI(), isOIDCEnabled()) // as per spec, refresh token server is at same endpoint as access token server.
+                        );
+                    }
+                };
+
+            } else {
+
+                dsp = new Provider<DelegationService>() {
+                    @Override
+                    public DelegationService get() {
+                        return new DS2(new AGServer2(createServiceClient(getAuthzURI())), // as per spec, request for AG comes through authz endpoint.
+                                new ATServer2(createServiceClient(getAccessTokenURI()), getWellKnownURI(), isOIDCEnabled()),
+                                new PAServer2(createServiceClient(getAssetURI())),
+                                new UIServer2(createServiceClient(getUIURI())),
+                                new RTServer2(createServiceClient(getAccessTokenURI()), getWellKnownURI(), isOIDCEnabled()) // as per spec, refresh token server is at same endpoint as access token server.
+                        );
+                    }
+                };
+
+            }
         }
         return dsp;
     }

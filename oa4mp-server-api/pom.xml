@@ -15,12 +15,6 @@
     <packaging>jar</packaging>
     <dependencies>
         <dependency>
-            <groupId>org.jglobus</groupId>
-            <version>RELEASE</version>
-            <artifactId>jsse</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>edu.uiuc.ncsa.security.delegation</groupId>
             <artifactId>ncsa-security-delegation-server</artifactId>
             <version>${revision}</version>
@@ -73,12 +67,6 @@
             <groupId>javax.servlet</groupId>
             <!--artifactId>servlet-api</artifactId-->
             <artifactId>javax.servlet-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jglobus</groupId>
-            <version>RELEASE</version>
-            <artifactId>JGlobus-Core</artifactId>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 
