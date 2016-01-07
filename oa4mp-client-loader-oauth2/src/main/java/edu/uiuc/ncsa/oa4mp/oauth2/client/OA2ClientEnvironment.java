@@ -63,6 +63,7 @@ public class OA2ClientEnvironment extends ClientEnvironment {
                                 Provider<DelegationService> delegationServiceProvider,
                                 Provider<AssetStore> assetStoreProvider,
                                 boolean showRedirectPage,
+                                boolean requestProxies,
                                 String errorPagePath,
                                 String redirectPagePath,
                                 String successPagePath,
@@ -92,6 +93,7 @@ public class OA2ClientEnvironment extends ClientEnvironment {
                 errorPagePath,
                 redirectPagePath,
                 successPagePath);
+        this.requestProxies = requestProxies;
         this.secret = secret;
         this.scopes = scopes;
     }
@@ -109,4 +111,10 @@ public class OA2ClientEnvironment extends ClientEnvironment {
         }
         return client;
     }
+    
+    protected boolean requestProxies = false;
+    
+    public boolean isRequestProxies() {
+		return requestProxies;
+	}
 }

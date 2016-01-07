@@ -5,6 +5,7 @@ import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.delegation.token.AuthorizationGrant;
 import edu.uiuc.ncsa.security.delegation.token.RefreshToken;
 
+import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -21,6 +22,34 @@ public class OA2ServiceTransaction extends OA4MPServiceTransaction {
     public OA2ServiceTransaction(Identifier identifier) {
         super(identifier);
     }
+    
+    KeyPair keypair = null;
+    String voname = null;
+    String vomses = null;
+    
+    public KeyPair getKeypair() {
+		return keypair;
+	}
+    
+    public void setKeypair(KeyPair keypair) {
+		this.keypair = keypair;
+	}
+    
+    public String getVoname() {
+		return voname;
+	}
+    
+    public void setVoname(String voname) {
+		this.voname = voname;
+	}    
+    
+    public String getVomses() {
+		return vomses;
+	}
+    
+    public void setVomses(String vomses) {
+		this.vomses = vomses;
+	}
 
     RefreshToken refreshToken;
     long refreshTokenLifetime = 0L;
@@ -116,6 +145,11 @@ public class OA2ServiceTransaction extends OA4MPServiceTransaction {
             if (!getRefreshToken().equals(st2.getRefreshToken())) return false;
         }
         if (isRefreshTokenValid() != st2.isRefreshTokenValid()) return false;
+        
+    	if ( ! this.keypair.equals((st2).getKeypair()) ) return false;
+    	if ( ! this.voname.equals((st2).getVoname()) ) return false;
+    	if ( ! this.vomses.equals((st2).getVomses()) ) return false;
+    	
         return true;
     }
 }

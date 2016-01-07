@@ -60,6 +60,17 @@
         <url-pattern>/getcert</url-pattern>
     </servlet-mapping>
 
+
+    <servlet>
+        <servlet-name>getProxy</servlet-name>
+        <servlet-class>edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2ProxyServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>getProxy</servlet-name>
+        <url-pattern>/getproxy</url-pattern>
+    </servlet-mapping>  
+
+
     <servlet>
         <servlet-name>error</servlet-name>
         <servlet-class>edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.ErrorServlet</servlet-class>

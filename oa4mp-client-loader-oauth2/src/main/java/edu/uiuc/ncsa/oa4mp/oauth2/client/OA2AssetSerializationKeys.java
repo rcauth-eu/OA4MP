@@ -8,6 +8,18 @@ import edu.uiuc.ncsa.myproxy.oa4mp.client.storage.AssetSerializationKeys;
  */
 public class OA2AssetSerializationKeys extends AssetSerializationKeys {
 
+	String voname = "voname";
+	public String voname(String... x){
+        if(0 < x.length) voname = x[0];
+        return voname;
+    }
+
+	String vomses = "vomses";
+	public String vomses(String... x){
+        if(0 < x.length) vomses = x[0];
+        return vomses;
+    }
+	
     String accessToken = "access_token";
     public String accessToken(String... x){
         if(0 < x.length) accessToken= x[0];
