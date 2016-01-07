@@ -31,7 +31,10 @@ public abstract class ACS2 extends CRServlet {
         doDelegation(httpServletRequest, httpServletResponse);
     }
 
-
+    protected void prepare(ServiceTransaction transaction, HttpServletRequest request, HttpServletResponse response) throws Throwable {
+    	
+    }
+    
     protected void doDelegation(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Throwable {
         info("6.a. Starting to process cert request");
         PARequest paRequest = new PARequest(httpServletRequest, getClient(httpServletRequest));
@@ -43,6 +46,9 @@ public abstract class ACS2 extends CRServlet {
         PAResponse paResponse = (PAResponse) getPAI().process(paRequest);
         debug("6.a. " + statusString);
         ServiceTransaction t = verifyAndGet(paResponse);
+        
+        prepare(t,httpServletRequest,httpServletResponse);
+        
         Map params = httpServletRequest.getParameterMap();
 
         if (t.getCertReq() == null) {

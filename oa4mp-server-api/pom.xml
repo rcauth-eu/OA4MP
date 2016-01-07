@@ -12,6 +12,7 @@
 
     <artifactId>oa4mp-server-api</artifactId>
     <name>OAuth for MyProxy server API.</name>
+    <version>3.4-SNAPSHOT</version>
     <packaging>jar</packaging>
     <dependencies>
         <dependency>

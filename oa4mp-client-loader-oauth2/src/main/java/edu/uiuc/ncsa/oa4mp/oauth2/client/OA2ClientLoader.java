@@ -42,7 +42,7 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
     }
 
     public OA4MPServiceProvider getServiceProvider() {
-        return new OA2MPServiceProvider(load());
+    	return new OA2MPServiceProvider(load());
     }
 
     protected Collection<String> scopes = null;
@@ -83,6 +83,7 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
                     getDSP(),
                     getAssetStoreProvider(),
                     isShowRedirectPage(),
+                    requestProxies(),
                     getErrorPagePath(),
                     getRedirectPagePath(),
                     getSuccessPagePath(),
@@ -169,7 +170,13 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
         return Boolean.parseBoolean(getCfgValue(ClientXMLTags.SHOW_REDIRECT_PAGE));
 
     }
-
+    
+    protected boolean requestProxies() {
+        String temp = getCfgValue(ClientXMLTags.REQUEST_PROXIES);
+        if (temp == null || temp.length() == 0) return false;
+        return Boolean.parseBoolean(getCfgValue(ClientXMLTags.REQUEST_PROXIES));
+    }
+    
     @Override
     public T createInstance() {
 
@@ -200,20 +207,49 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
     @Override
     protected Provider<DelegationService> getDSP() {
         if (dsp == null) {
-            dsp = new Provider<DelegationService>() {
-                @Override
-                public DelegationService get() {
-                    return new DS2(new AGServer2(createServiceClient(getAuthzURI())), // as per spec, request for AG comes through authz endpoint.
-                            new ATServer2(createServiceClient(getAccessTokenURI()), getWellKnownURI()),
-                            new PAServer2(createServiceClient(getAssetURI())),
-                            new UIServer2(createServiceClient(getUIURI())),
-                            new RTServer2(createServiceClient(getAccessTokenURI())) // as per spec, refresh token server is at same endpoint as access token server.
-                    );
-                }
-            };
+        	
+        	if ( requestProxies() ) {
+
+	            dsp = new Provider<DelegationService>() {
+	                @Override
+	                public DelegationService get() {
+	                    return new DS2(new AGServer2(createServiceClient(getAuthzURI())), // as per spec, request for AG comes through authz endpoint.
+	                            new ATServer2(createServiceClient(getAccessTokenURI()), getWellKnownURI()),
+	                            new PPServer2(createServiceClient(getProxyAssetURI())),
+	                            new UIServer2(createServiceClient(getUIURI())),
+	                            new RTServer2(createServiceClient(getAccessTokenURI())) // as per spec, refresh token server is at same endpoint as access token server.
+	                    );
+	                }
+	            };        		
+        		
+        	} else {
+        	
+	            dsp = new Provider<DelegationService>() {
+	                @Override
+	                public DelegationService get() {
+	                    return new DS2(new AGServer2(createServiceClient(getAuthzURI())), // as per spec, request for AG comes through authz endpoint.
+	                            new ATServer2(createServiceClient(getAccessTokenURI()), getWellKnownURI()),
+	                            new PAServer2(createServiceClient(getAssetURI())),
+	                            new UIServer2(createServiceClient(getUIURI())),
+	                            new RTServer2(createServiceClient(getAccessTokenURI())) // as per spec, refresh token server is at same endpoint as access token server.
+	                    );
+	                }
+	            };
+	            
+        	}
         }
         return dsp;
     }
+
+
+    public static final String PROXY_ENDPOINT = "getproxy";
+
+    protected URI getProxyAssetURI() {
+        String x = getCfgValue(ClientXMLTags.ASSET_URI);
+        checkProtocol(x);
+        return createServiceURI(x, getBaseURI(), PROXY_ENDPOINT);
+    }    
+
 
     protected URI getUIURI() {
         return createServiceURI(getCfgValue(ClientXMLTags.USER_INFO_URI), getCfgValue(ClientXMLTags.BASE_URI), USER_INFO_ENDPOINT);

@@ -52,6 +52,10 @@ public class OA2AssetConverter extends AssetConverter {
         if (map.containsKey(OA2Claims.ISSUED_AT)) {
             a.setIssuedAt(map.getDate(OA2Claims.ISSUED_AT));
         }
+        
+        a.setVomses(map.getString(getASK().vomses()));
+        a.setVoname(map.getString(getASK().voname()));
+        
         return a;
     }
 
@@ -74,5 +78,13 @@ public class OA2AssetConverter extends AssetConverter {
         if (a.getIssuedAt() != null) {
             map.put(OA2Claims.ISSUED_AT, a.getIssuedAt());
         }
+        
+		if (a.getVoname() != null) {
+			map.put(getASK().voname(), a.getVoname());
+		}
+		if (a.getVomses() != null) {
+			map.put(getASK().vomses(), a.getVomses());
+		}
+		
     }
 }

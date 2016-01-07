@@ -116,19 +116,21 @@ public class MyProxyLogon {
 
     long socketTimeout = 0L;
 
-    private final static int b64linelen = 64;
-    private final static String X509_USER_PROXY_FILE = "x509up_u";
-    private final static String VERSION = "VERSION=MYPROXYv2";
-    private final static String GETCOMMAND = "COMMAND=0";
-    private final static String TRUSTROOTS = "TRUSTED_CERTS=";
-    private final static String USERNAME = "USERNAME=";
-    private final static String PASSPHRASE = "PASSPHRASE=";
-    private final static String LIFETIME = "LIFETIME=";
-    private final static String CREDNAME = "CRED_NAME=";
-    private final static String RESPONSE = "RESPONSE=";
-    private final static String ERROR = "ERROR=";
-    private final static String DN = "CN=ignore";
-    private final static String TRUSTED_CERT_PATH = "/.globus/certificates";
+    protected final static int b64linelen = 64;
+    protected final static String X509_USER_PROXY_FILE = "x509up_u";
+    protected final static String VERSION = "VERSION=MYPROXYv2";
+    protected final static String GETCOMMAND = "COMMAND=0";
+    protected final static String TRUSTROOTS = "TRUSTED_CERTS=";
+    protected final static String USERNAME = "USERNAME=";
+    protected final static String PASSPHRASE = "PASSPHRASE=";
+    protected final static String LIFETIME = "LIFETIME=";
+    protected final static String VONAME = "VONAME=";
+    protected final static String VOMSES = "VOMSES=";
+    protected final static String CREDNAME = "CRED_NAME=";
+    protected final static String RESPONSE = "RESPONSE=";
+    protected final static String ERROR = "ERROR=";
+    protected final static String DN = "CN=ignore";
+    protected final static String TRUSTED_CERT_PATH = "/.globus/certificates";
 
     public final int DEFAULT_KEY_SIZE = 2048;
     protected int keySize = DEFAULT_KEY_SIZE;
@@ -143,6 +145,8 @@ public class MyProxyLogon {
     protected String passphrase;
     protected int port = 7512;
     protected int lifetime = 43200;
+	protected String voname;
+	protected String vomses;
     protected boolean requestTrustRoots = false;
     protected SSLSocket socket;
     protected BufferedInputStream socketIn;
@@ -338,6 +342,49 @@ public class MyProxyLogon {
             getMlf().warn("Negative cert lifetime of " + this.lifetime + " encountered. Server should default to 0.");
         }
     }
+    
+    /**
+     * Gets the vomses string sent to MyProxy 
+     * 
+     * @return vomses string
+     */
+    public String getVomses() {
+		return vomses;
+	}
+    
+    /**
+     * Sets the vomses string sent to MyProxy. By setting this you can specify 
+     * VOMS server information under 'vomses' file format : 
+     * 
+     * "nickname" "voms-server" "port" "server host dn" "voname" ["gt ver"] 
+     *  
+     * Leave this unset if you don't want to send a vomses string
+     * 
+     * @param vomses string
+     */
+    public void setVomses(String vomses) {
+		this.vomses = vomses;
+	}
+    
+    /**
+     * Gets the voname string sent to MyProxy.
+     * 
+     * @return voname string
+     */
+    public String getVoname() {
+		return voname;
+	}
+    
+    /**
+     * Sets the voname string sent to MyProxy. By setting this you can specify
+     * the name of the VO (together with  requested group and role information)
+     * which you would like to have in your proxy 
+     * 
+     * @param voname string 
+     */
+    public void setVoname(String voname) {
+		this.voname = voname;
+	}
 
     /**
      * Gets the certificates returned from the MyProxy server by
@@ -463,7 +510,7 @@ public class MyProxyLogon {
      * Set the key manager factory for use in client-side SSLSocket
      * certificate-based authentication to the MyProxy server.
      * Call this before connect().
-     *
+     *disconnect
      * @param keyManagerFactory Key manager factory to use
      */
     public void setKeyManagerFactory(KeyManagerFactory keyManagerFactory) {
@@ -525,6 +572,16 @@ public class MyProxyLogon {
             this.socketOut.write(LIFETIME.getBytes());
             this.socketOut.write(Integer.toString(this.lifetime).getBytes());
             this.socketOut.write('\n');
+            if (this.voname != null) {
+                this.socketOut.write(VONAME.getBytes());
+                this.socketOut.write(this.voname.getBytes());
+                this.socketOut.write('\n');
+            }
+            if (this.vomses != null) {
+                this.socketOut.write(VOMSES.getBytes());
+                this.socketOut.write(this.vomses.getBytes());
+                this.socketOut.write('\n');
+            }
             if (this.credname != null) {
                 this.socketOut.write(CREDNAME.getBytes());
                 this.socketOut.write(this.credname.getBytes());
@@ -619,6 +676,9 @@ public class MyProxyLogon {
                 System.err.println(Integer.toString(numCertificates));
                 throw new GeneralSecurityException("Error: bad number of certificates sent by server");
             }
+            
+            System.err.println(getClass().getSimpleName() + ".getCreds: *debug*  Returned number of certificates : " + numCertificates);
+
             CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
             this.certificateChain = (Collection<X509Certificate>) certFactory.generateCertificates(this.socketIn);
             this.state = State.DONE;
@@ -924,7 +984,7 @@ public class MyProxyLogon {
         }
     }
 
-    private String readLine(InputStream is) throws IOException {
+    protected String readLine(InputStream is) throws IOException {
         StringBuffer sb = new StringBuffer();
         for (int c = is.read(); c > 0 && c != '\n'; c = is.read()) {
             sb.append((char) c);
