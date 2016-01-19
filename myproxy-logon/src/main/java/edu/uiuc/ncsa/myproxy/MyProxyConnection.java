@@ -21,13 +21,13 @@ public class MyProxyConnection implements MyProxyConnectable {
 	}
 	
 	@Override
-	public void doPut(X509Certificate[] chain, PrivateKey privateKey) throws Throwable {	
+	public void doPut(X509Certificate[] chain, PrivateKey privateKey) throws MyProxyException {	
 		resetConnection();
 		this.myproxy.doPut(chain, privateKey);
 	}
 	
 	@Override
-	public void doStore(X509Certificate[] chain, PrivateKey privateKey) throws Throwable {
+	public void doStore(X509Certificate[] chain, PrivateKey privateKey) throws MyProxyException {
 		resetConnection();
 		this.myproxy.doStore(chain, privateKey);
 	}
@@ -39,15 +39,7 @@ public class MyProxyConnection implements MyProxyConnectable {
 		
 		resetConnection();
 		
-		try {
-					
-			info = myproxy.doInfo();			
-
-		} catch (MyProxyException e) {
-			throw e;
-		} catch (Throwable e) {
-            throw new GeneralException("Error: getting info from myproxy", e);
-        }
+		info = myproxy.doInfo();			
 		
         if ( info.length > 1 ) {
         	throw new MyProxyException("Undefined behaviour! More then one certificate registered under single username");
@@ -115,9 +107,11 @@ public class MyProxyConnection implements MyProxyConnectable {
             certList.addAll(myproxy.getCertificates());
             return certList;
         } catch (Throwable e) {
-            System.err.println(getClass().getSimpleName() + ".getCerts: failed!");
-            e.printStackTrace();
-            throw new GeneralException("Error: getting certs from myproxy", e);
+            if ( e instanceof MyProxyException ) {
+            	throw (MyProxyException) e;
+            } else {
+            	throw new MyProxyException("Failed to execute GET command",e);
+            }
         }
     }
     

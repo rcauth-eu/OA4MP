@@ -53,7 +53,7 @@ public interface MyProxyConnectable extends Cacheable{
      * @param chain this will be included in the resulting proxy
      * @param privateKey used for signing the new proxy certificate
      */
-    public void doPut(X509Certificate[] chain, PrivateKey privateKey) throws Throwable;
+    public void doPut(X509Certificate[] chain, PrivateKey privateKey) throws MyProxyException;
     
     /**
      * Does a MyProxy STORE request, uploading a Proxy Certificate provided in the parameters 
@@ -61,5 +61,5 @@ public interface MyProxyConnectable extends Cacheable{
      * @param chain The first certificate in the chain is considered to be the proxy
      * @param privateKey Private Key matching the proxy (first certificate in the chain)
      */
-    public void doStore(X509Certificate[] chain, PrivateKey privateKey) throws Throwable;    
+    public void doStore(X509Certificate[] chain, PrivateKey privateKey) throws MyProxyException;    
 }

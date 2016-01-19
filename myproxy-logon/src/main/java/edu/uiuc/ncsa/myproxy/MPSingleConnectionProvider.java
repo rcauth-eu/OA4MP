@@ -1,5 +1,6 @@
 package edu.uiuc.ncsa.myproxy;
 
+import edu.uiuc.ncsa.myproxy.exception.MyProxyException;
 import edu.uiuc.ncsa.security.core.Identifiable;
 import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.exceptions.ConnectionException;
@@ -90,12 +91,12 @@ public class MPSingleConnectionProvider<T extends MyProxyConnectable> implements
         }
         
 		@Override
-		public void doPut(X509Certificate[] chain, PrivateKey privateKey) throws Throwable {
+	public void doPut(X509Certificate[] chain, PrivateKey privateKey) throws MyProxyException {
 			throw new NotImplementedException();
 		}
 
 		@Override
-		public void doStore(X509Certificate[] chain, PrivateKey privateKey) throws Throwable {
+	public void doStore(X509Certificate[] chain, PrivateKey privateKey) throws MyProxyException {
 			throw new NotImplementedException();
 		}
 		
