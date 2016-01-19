@@ -1,6 +1,7 @@
 package edu.uiuc.ncsa.myproxy;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,7 +16,9 @@ import java.util.Map;
 import javax.security.auth.login.FailedLoginException;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 
+import edu.uiuc.ncsa.myproxy.exception.MyProxyException;
 import edu.uiuc.ncsa.myproxy.exception.MyProxyNoUserException;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
@@ -72,38 +75,31 @@ public class MyProxy extends MyProxyLogon {
         if (this.state != State.CONNECTED) {
             this.connect();
         }
+    
+        this.socketOut.write('0');
+        this.socketOut.flush();
         
-        try {
-        	
-            this.socketOut.write('0');
-            this.socketOut.flush();
-            
-            this.socketOut.write(VERSION.getBytes());
-            this.socketOut.write('\n');
-            this.socketOut.write(COMMAND.getBytes());
-            this.socketOut.write(STORE_COMMAND.getBytes());
-            this.socketOut.write('\n');
-            this.socketOut.write(USERNAME.getBytes());
-            this.socketOut.write(this.username.getBytes());
-            this.socketOut.write('\n');
-            this.socketOut.write(PASSPHRASE.getBytes());
-            this.socketOut.write("".getBytes());
-            this.socketOut.write('\n');
-            this.socketOut.write(LIFETIME.getBytes());
-            this.socketOut.write(Integer.toString(this.lifetime).getBytes());
-            this.socketOut.write('\n');
-            this.socketOut.flush();
+        this.socketOut.write(VERSION.getBytes());
+        this.socketOut.write('\n');
+        this.socketOut.write(COMMAND.getBytes());
+        this.socketOut.write(STORE_COMMAND.getBytes());
+        this.socketOut.write('\n');
+        this.socketOut.write(USERNAME.getBytes());
+        this.socketOut.write(this.username.getBytes());
+        this.socketOut.write('\n');
+        this.socketOut.write(PASSPHRASE.getBytes());
+        this.socketOut.write("".getBytes());
+        this.socketOut.write('\n');
+        this.socketOut.write(LIFETIME.getBytes());
+        this.socketOut.write(Integer.toString(this.lifetime).getBytes());
+        this.socketOut.write('\n');
+        this.socketOut.flush();
 
-            this.state = State.LOGGEDON;
-            
-        }     
-        catch (Throwable t) {
-            handleException(t, getClass().getSimpleName() + " STORE failed.");
-        }	      	
+        this.state = State.LOGGEDON;      	
     	
     }
     
-    public void doStore(X509Certificate[] chain, PrivateKey pKey) throws Throwable {
+    public void doStore(X509Certificate[] chain, PrivateKey pKey) throws MyProxyException {
     	
 		try {
 		    
@@ -118,7 +114,7 @@ public class MyProxy extends MyProxyLogon {
             
             // send certificate , private key and the rest of the chain.
 	    	if (chain.length < 1) {
-	    		throw new GeneralException("No Certificate chain provided to the STORE method!");
+	    		throw new MyProxyException("No Certificate chain provided to the STORE method!");
 	    	}
 	    	
 	        if ( this.mlf != null ) {
@@ -148,7 +144,7 @@ public class MyProxy extends MyProxyLogon {
 	    	handleResponse();
 	    	
 		} catch (Throwable t) {
-	           handleException(t, getClass().getSimpleName() + " failure executing PUT.");
+			handleMyProxyException(t,"Failed to execute STORE command");
 		}	
 		finally {
         	this.state = State.DONE;
@@ -161,39 +157,32 @@ public class MyProxy extends MyProxyLogon {
         if (this.state != State.CONNECTED) {
             this.connect();
         }
+    	
+        this.socketOut.write('0');
+        this.socketOut.flush();
         
-        try {
-        	
-            this.socketOut.write('0');
-            this.socketOut.flush();
-            
-            this.socketOut.write(VERSION.getBytes());
-            this.socketOut.write('\n');
-            this.socketOut.write(COMMAND.getBytes());
-            this.socketOut.write(PUT_COMMAND.getBytes());
-            this.socketOut.write('\n');
-            this.socketOut.write(USERNAME.getBytes());
-            this.socketOut.write(this.username.getBytes());
-            this.socketOut.write('\n');
-            this.socketOut.write(PASSPHRASE.getBytes());
-            this.socketOut.write(this.passphrase.getBytes());
-            this.socketOut.write('\n');
-            this.socketOut.write(LIFETIME.getBytes());
-            this.socketOut.write(Integer.toString(this.lifetime).getBytes());
-            this.socketOut.write('\n');
-            this.socketOut.flush();
+        this.socketOut.write(VERSION.getBytes());
+        this.socketOut.write('\n');
+        this.socketOut.write(COMMAND.getBytes());
+        this.socketOut.write(PUT_COMMAND.getBytes());
+        this.socketOut.write('\n');
+        this.socketOut.write(USERNAME.getBytes());
+        this.socketOut.write(this.username.getBytes());
+        this.socketOut.write('\n');
+        this.socketOut.write(PASSPHRASE.getBytes());
+        this.socketOut.write(this.passphrase.getBytes());
+        this.socketOut.write('\n');
+        this.socketOut.write(LIFETIME.getBytes());
+        this.socketOut.write(Integer.toString(this.lifetime).getBytes());
+        this.socketOut.write('\n');
+        this.socketOut.flush();
 
-            this.state = State.LOGGEDON;
-            
-        }     
-        catch (Throwable t) {
-            handleException(t, getClass().getSimpleName() + " PUT failed.");
-        }	    	
+        this.state = State.LOGGEDON;
         
     }
     
     
-    public void doPut(X509Certificate[] chain, PrivateKey pKey) throws Throwable {
+    public void doPut(X509Certificate[] chain, PrivateKey pKey) throws MyProxyException {
     	
 		try {
 	    
@@ -236,9 +225,9 @@ public class MyProxy extends MyProxyLogon {
 	    	this.socketOut.flush();
 	    	
 	    	handleResponse();
-	    	
+	    
 		} catch (Throwable t) {
-	           handleException(t, getClass().getSimpleName() + " failure executing PUT.");
+			handleMyProxyException(t,"Failed to execute PUT command");
 		}	
 		finally {
         	this.state = State.DONE;
@@ -251,39 +240,31 @@ public class MyProxy extends MyProxyLogon {
         if (this.state != State.CONNECTED) {
             this.connect();
         }
-        
-        try {
-        	
-            this.socketOut.write('0');
-            this.socketOut.flush();
-            
-            this.socketOut.write(VERSION.getBytes());
-            this.socketOut.write('\n');
-            this.socketOut.write(COMMAND.getBytes());
-            this.socketOut.write(INFO_COMMAND.getBytes());
-            this.socketOut.write('\n');
-            this.socketOut.write(USERNAME.getBytes());
-            this.socketOut.write(this.username.getBytes());
-            this.socketOut.write('\n');
-            this.socketOut.write(PASSPHRASE.getBytes());
-            this.socketOut.write("PASSPHRASE".getBytes());
-            this.socketOut.write('\n');
-            this.socketOut.write(LIFETIME.getBytes());
-            this.socketOut.write("0".getBytes());
-            this.socketOut.write('\n');
-            this.socketOut.flush();
 
-            this.state = State.LOGGEDON;
-            
-        } 
-      
-        catch (Throwable t) {
-            handleException(t, getClass().getSimpleName() + " INFO failed.");
-        }	
+        this.socketOut.write('0');
+        this.socketOut.flush();
+        
+        this.socketOut.write(VERSION.getBytes());
+        this.socketOut.write('\n');
+        this.socketOut.write(COMMAND.getBytes());
+        this.socketOut.write(INFO_COMMAND.getBytes());
+        this.socketOut.write('\n');
+        this.socketOut.write(USERNAME.getBytes());
+        this.socketOut.write(this.username.getBytes());
+        this.socketOut.write('\n');
+        this.socketOut.write(PASSPHRASE.getBytes());
+        this.socketOut.write("PASSPHRASE".getBytes());
+        this.socketOut.write('\n');
+        this.socketOut.write(LIFETIME.getBytes());
+        this.socketOut.write("0".getBytes());
+        this.socketOut.write('\n');
+        this.socketOut.flush();
+
+        this.state = State.LOGGEDON;
         
 	}
 	
-	public MyProxyCredentialInfo[] doInfo() throws IOException, GeneralSecurityException, MyProxyNoUserException {
+	public MyProxyCredentialInfo[] doInfo() throws MyProxyException {
 			
 		try {
 	        // close any previously opened connection
@@ -364,19 +345,29 @@ public class MyProxy extends MyProxyLogon {
 		}
 		catch (FailedLoginException e) {
         	if (e.getMessage().contains("no credentials found for user")) {
-        		throw new MyProxyNoUserException("unknown user",e);
+        		throw new MyProxyNoUserException("User unknown in MyProxy Store",e);
         	} else {
-        		throw e;
+        		handleMyProxyException(e,"Failed to execute INFO command");
         	}			
 		}
 		catch (Throwable t) {
-            handleException(t, getClass().getSimpleName() + " failure executing INFO.");
+            handleMyProxyException(t,"Failed to execute INFO command");
         }
 		finally {
         	this.state = State.DONE;
         }
 		
 		return null;
+		
+	}
+	
+	protected void handleMyProxyException(Throwable t, String message) throws MyProxyException {
+		
+		if ( t instanceof MyProxyException ) {
+			throw (MyProxyException) t;
+		} else {
+			throw new MyProxyException(message,t);
+		}
 		
 	}
 	
