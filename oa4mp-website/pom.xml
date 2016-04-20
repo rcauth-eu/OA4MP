@@ -106,13 +106,13 @@
             <artifactId>ncsa-security-delegation-server</artifactId>
             <version>3.4-SNAPSHOT</version>
         </dependency>
-        <dependency>
+<!--        <dependency>
             <groupId>edu.uiuc.ncsa.security</groupId>
             <artifactId>ncsa-security-core</artifactId>
             <version>3.4-SNAPSHOT</version>
             <type>test-jar</type>
             <scope>test</scope>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>edu.uiuc.ncsa.security.delegation</groupId>
             <artifactId>ncsa-security-delegation-common</artifactId>
@@ -258,7 +258,7 @@
                 <artifactId>maven-gpg-plugin</artifactId>
                 <version>1.6</version>
                 <configuration>
-                    <skip>true</skip>
+                    <skip>false</skip>
                 </configuration>
                 <executions>
                     <execution>
