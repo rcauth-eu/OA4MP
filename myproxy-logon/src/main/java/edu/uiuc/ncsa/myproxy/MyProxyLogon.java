@@ -685,9 +685,6 @@ public class MyProxyLogon {
                 System.err.println(Integer.toString(numCertificates));
                 throw new GeneralSecurityException("Error: bad number of certificates sent by server");
             }
-            
-            System.err.println(getClass().getSimpleName() + ".getCreds: *debug*  Returned number of certificates : " + numCertificates);
-
             CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
             this.certificateChain = (Collection<X509Certificate>) certFactory.generateCertificates(this.socketIn);
             this.state = State.DONE;
