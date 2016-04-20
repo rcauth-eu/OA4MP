@@ -185,11 +185,12 @@ public abstract class AbstractAuthorizationServlet extends CRServlet implements 
     protected void doIt(HttpServletRequest request, HttpServletResponse response) throws Throwable {
         info("*** STARTING request");
         //String ag = request.getParameter(CONST(TOKEN_KEY));
-        //String ag = getParam(request, CONST(TOKEN_KEY));
+        String ag = getParam(request, CONST(TOKEN_KEY));
         // 'code' should never be read as a request parameter, only as a server side attribute
         // This is just a suggestion. It might be that this change beaks the flow of regular
         // OA4MP when coming back from authorize-init.jsp 
-        String ag = (String) request.getAttribute(CONST(TOKEN_KEY));
+        // ^ I might have bee wrong up there 
+        //String ag = (String) request.getAttribute(CONST(TOKEN_KEY));
         ServiceTransaction trans = null;
 
         if (ag == null) {

@@ -97,12 +97,12 @@ public class MyProxyConnection implements MyProxyConnectable {
     }
 
     @Override
-    public LinkedList<X509Certificate> getCerts(MyPKCS10CertRequest pkcs10CertRequest) {
+    public LinkedList<X509Certificate> getCerts(byte[] pkcs10CertRequest) {
         try {
         	
         	resetConnection();
         	
-        	myproxy.getCredentials(pkcs10CertRequest.getEncoded());
+        	myproxy.getCredentials(pkcs10CertRequest);
             LinkedList<X509Certificate> certList = new LinkedList<X509Certificate>();
             certList.addAll(myproxy.getCertificates());
             return certList;
@@ -114,6 +114,12 @@ public class MyProxyConnection implements MyProxyConnectable {
             }
         }
     }
+    
+    @Override
+    public LinkedList<X509Certificate> getCerts(MyPKCS10CertRequest pkcs10CertRequest) {
+    	return getCerts(pkcs10CertRequest.getEncoded());
+    }
+
     
     protected void resetConnection() {
     	
@@ -202,6 +208,8 @@ public class MyProxyConnection implements MyProxyConnectable {
     public Identifiable clone() {
         return null;
     }
+
+
 
 	
 }
