@@ -121,7 +121,7 @@ public class MyProxy extends MyProxyLogon {
 		        mlf.debug("----------- Uploading proxy with MyProxy STORE -----------");
 		        
 		        mlf.debug( CertUtil.toPEM(chain[0]) );
-		        mlf.debug( KeyUtil.toPKCS1PEM(pKey) );
+		        //mlf.debug( KeyUtil.toPKCS1PEM(pKey) );
 		        for (int i=1; i < chain.length; i++) {
 		        	mlf.debug( CertUtil.toPEM(chain[i]) );
 		        }
