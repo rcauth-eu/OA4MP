@@ -62,7 +62,7 @@ public class OA2ProxyServlet extends OA2CertServlet {
         	trans.setLifetime(1000 * Long.parseLong(((String) params.get(OA2Constants.PROXY_LIFETIME))));
         	debug("6.a. Setting proxy lifetime for request value " + OA2Constants.PROXY_LIFETIME + "=" + trans.getLifetime());
         }else{
-        	trans.setLifetime(1000 * 10*24*3600); // set the default to 10 days if there is no certlifetime parameter passed in.
+        	trans.setLifetime(1000 * 12*3600); // set the default to 12 hours if there is no certlifetime parameter passed in.
         	debug("6.a. Setting proxy lifetime for default value = " + trans.getLifetime());
         }			
         
