@@ -101,7 +101,7 @@ public class MPSingleConnectionProvider<T extends MyProxyConnectable> implements
 		}
 		
         @Override
-        public String doInfo() {
+        public MyProxyCredentialInfo doInfo() {
         	throw new NotImplementedException();
         }
         

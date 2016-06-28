@@ -44,7 +44,7 @@ public interface MyProxyConnectable extends Cacheable{
     /**
      * Retrieves information of the cerdentials stored under a specific user
      */
-    public String doInfo() throws MyProxyException;
+    public MyProxyCredentialInfo doInfo() throws MyProxyException;
     
     /**
      * Does a MyProxy PUT request, uploading a Proxy Certificate created from the provided

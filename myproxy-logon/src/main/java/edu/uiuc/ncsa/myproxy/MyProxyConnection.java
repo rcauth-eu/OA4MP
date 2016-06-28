@@ -33,7 +33,7 @@ public class MyProxyConnection implements MyProxyConnectable {
 	}
 	
 	@Override
-	public String doInfo() throws MyProxyException {
+	public MyProxyCredentialInfo doInfo() throws MyProxyException {
 		
 		MyProxyCredentialInfo[] info = null;
 		
@@ -50,7 +50,7 @@ public class MyProxyConnection implements MyProxyConnectable {
         	throw new MyProxyCertExpiredExcpetion("User certificate expired in Credential Store!");
         }			
 		
-        return info[0].toString();
+        return info[0];
     
 	}	
 	
