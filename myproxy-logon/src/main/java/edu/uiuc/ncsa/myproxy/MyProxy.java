@@ -1,7 +1,6 @@
 package edu.uiuc.ncsa.myproxy;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,11 +15,10 @@ import java.util.Map;
 import javax.security.auth.login.FailedLoginException;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.IOUtils;
+
 
 import edu.uiuc.ncsa.myproxy.exception.MyProxyException;
 import edu.uiuc.ncsa.myproxy.exception.MyProxyNoUserException;
-import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 import edu.uiuc.ncsa.security.util.pkcs.CertUtil;
 import edu.uiuc.ncsa.security.util.pkcs.KeyUtil;
@@ -65,10 +63,29 @@ public class MyProxy extends MyProxyLogon {
     public static String LINE_SEP;
     public static byte[] LINE_SEP_BYTES;
     
+    protected String retriever; 
+    protected String renewer;
+    
     static {
         LINE_SEP = System.getProperty("line.separator");
         LINE_SEP_BYTES = LINE_SEP.getBytes();
     }
+    
+    public void setRetriever(String retriever) {
+		this.retriever = retriever;
+	}
+    
+    public String getRetriever() {
+		return retriever;
+	}
+    
+    public void setRenewer(String renewer) {
+		this.renewer = renewer;
+	}
+    
+    public String getRenewer() {
+		return renewer;
+	}
     
     public void store() throws Throwable {
     	
@@ -93,6 +110,19 @@ public class MyProxy extends MyProxyLogon {
         this.socketOut.write(LIFETIME.getBytes());
         this.socketOut.write(Integer.toString(this.lifetime).getBytes());
         this.socketOut.write('\n');
+        
+        if ( this.retriever != null && ! this.retriever.isEmpty() ) {
+	        this.socketOut.write(RETRIEVER.getBytes());
+	        this.socketOut.write(this.retriever.getBytes());
+	        this.socketOut.write('\n');
+        }
+        
+        if ( this.renewer != null && ! this.renewer.isEmpty() ) {
+	        this.socketOut.write(RENEWER.getBytes());
+	        this.socketOut.write(this.renewer.getBytes());
+	        this.socketOut.write('\n');
+        }
+        
         this.socketOut.flush();
 
         this.state = State.LOGGEDON;      	
@@ -175,6 +205,19 @@ public class MyProxy extends MyProxyLogon {
         this.socketOut.write(LIFETIME.getBytes());
         this.socketOut.write(Integer.toString(this.lifetime).getBytes());
         this.socketOut.write('\n');
+        
+        if ( this.retriever != null && ! this.retriever.isEmpty() ) {
+	        this.socketOut.write(RETRIEVER.getBytes());
+	        this.socketOut.write(this.retriever.getBytes());
+	        this.socketOut.write('\n');
+        }
+        
+        if ( this.renewer != null && ! this.renewer.isEmpty() ) {
+	        this.socketOut.write(RENEWER.getBytes());
+	        this.socketOut.write(this.renewer.getBytes());
+	        this.socketOut.write('\n');
+        }
+        
         this.socketOut.flush();
 
         this.state = State.LOGGEDON;

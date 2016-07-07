@@ -39,6 +39,8 @@ public interface MyProxyConnectable extends Cacheable{
     
     public void setVoname(String voname);
     public void setVomses(String vomses);
+    public void setRetriever(String retriever);
+    public void setRenewer(String renewer);
     
     
     /**

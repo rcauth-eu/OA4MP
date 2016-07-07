@@ -90,19 +90,29 @@ public class MPSingleConnectionProvider<T extends MyProxyConnectable> implements
             this.myProxyLogon = myProxyLogon;
         }
         
-		@Override
-	public void doPut(X509Certificate[] chain, PrivateKey privateKey) throws MyProxyException {
-			throw new NotImplementedException();
-		}
+	@Override
+       public void doPut(X509Certificate[] chain, PrivateKey privateKey) throws MyProxyException {
+           throw new NotImplementedException();
+       }
 
-		@Override
+       @Override
 	public void doStore(X509Certificate[] chain, PrivateKey privateKey) throws MyProxyException {
-			throw new NotImplementedException();
-		}
+           throw new NotImplementedException();
+       }
 		
         @Override
         public MyProxyCredentialInfo doInfo() {
         	throw new NotImplementedException();
+        }
+        
+        @Override
+        public void setRetriever(String retriever) {
+            throw new NotImplementedException();
+        }
+        
+        @Override
+        public void setRenewer(String renewer) {
+            throw new NotImplementedException();
         }
         
         @Override
