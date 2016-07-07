@@ -134,40 +134,23 @@ public class MyProxyConnection implements MyProxyConnectable {
     }
     
     @Override
-    public void setVoname(String voname) {
-    	
-    	myproxy.setVoname(voname);
-    	
-    	/*
-    	if (myproxy != null && voname != null) {
-            if ( myproxy.getVoname() == null || ! myproxy.getVoname().equals(voname) ) {
-                // don't reset the connection, instead just close it. 
-            	// myProxyLogon.logon() will open in on demand anyway
-            	myproxy.setVoname(voname);
-                if (myproxy.isLoggedOn()) {
-                    close();
-                }
-            }
-        }
-        */
+    public void setRetriever(String retriever) {
+    	myproxy.setRetriever(retriever);   	
     }
     
     @Override
-    public void setVomses(String vomses) {
-    	
+    public void setRenewer(String renewer) {
+    	myproxy.setRenewer(renewer);
+    }
+    
+    @Override
+    public void setVoname(String voname) {
+    	myproxy.setVoname(voname);
+    }
+    
+    @Override
+    public void setVomses(String vomses) {	
     	myproxy.setVomses(vomses);
-    	/*
-        if (myproxy != null && vomses != null) {
-            if ( myproxy.getVomses() == null || ! myproxy.getVomses().equals(vomses) ) {
-                // don't reset the connection, instead just close it. 
-            	// myProxyLogon.logon() will open in on demand anyway
-            	myproxy.setVomses(vomses);
-                if (myproxy.isLoggedOn()) {
-                    close();
-                }
-            }
-        }
-        */
     }
     
     @Override
@@ -175,19 +158,6 @@ public class MyProxyConnection implements MyProxyConnectable {
     	
     	int newLifetime = (int) (certLifetime / 1000);
     	myproxy.setLifetime(newLifetime);
-    	
-    	/*
-        if (myproxy != null) {
-            int newLifetime = (int) (certLifetime / 1000);
-            if (myproxy.getLifetime() != newLifetime) {
-                // only go to the trouble of resetting this and re-acquiring the connection if there is a change.
-            	myproxy.setLifetime(newLifetime);
-                if (myproxy.isLoggedOn()) {
-                    close();
-                }
-            }
-        }
-        */
     }
 
     @Override
