@@ -81,7 +81,7 @@ public class MyProxyCredentialInfo {
         
         buf.append("Owner:" + this.owner + "\n");
         
-        if (this.name != null) {
+        if (this.name != null && ! this.name.isEmpty()) {
             buf.append(this.name + ":\n");
         } else {
         	buf.append("default :\n");
@@ -90,13 +90,13 @@ public class MyProxyCredentialInfo {
         buf.append("\tStart Time  : " + getStartTimeAsDate() + "\n");
         buf.append("\tEnd Time    : " + getEndTimeAsDate() + "\n");
         
-        if (this.description != null) {
+        if (this.description != null && ! this.description.isEmpty()) {
             buf.append("\tDescription :"  + this.description + "\n");
         }
-        if (this.renewers != null) {
+        if (this.renewers != null && ! this.renewers.isEmpty()) {
             buf.append("\tRenewers    : " + this.renewers + "\n");
         }
-        if (this.retrievers != null) {
+        if (this.retrievers != null && ! this.retrievers.isEmpty()) {
             buf.append("\tRetrievers  : " + this.retrievers + "\n");
         }
         return buf.toString();

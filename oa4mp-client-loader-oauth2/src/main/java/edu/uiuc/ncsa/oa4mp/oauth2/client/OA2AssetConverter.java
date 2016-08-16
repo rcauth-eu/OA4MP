@@ -79,11 +79,13 @@ public class OA2AssetConverter extends AssetConverter {
             map.put(OA2Claims.ISSUED_AT, a.getIssuedAt());
         }
         
-		if (a.getVoname() != null) {
-			map.put(getASK().voname(), a.getVoname());
+        String voname = a.getVoname();
+		if (voname != null && !voname.isEmpty()) {
+			map.put(getASK().voname(), voname);
 		}
-		if (a.getVomses() != null) {
-			map.put(getASK().vomses(), a.getVomses());
+		String vomses = a.getVomses();
+		if (vomses != null && !vomses.isEmpty()) {
+			map.put(getASK().vomses(), vomses);
 		}
 		
     }
