@@ -4,7 +4,7 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.LinkedList;
 
-import edu.uiuc.ncsa.myproxy.exception.MyProxyCertExpiredExcpetion;
+import edu.uiuc.ncsa.myproxy.exception.MyProxyCertExpiredException;
 import edu.uiuc.ncsa.myproxy.exception.MyProxyException;
 import edu.uiuc.ncsa.security.core.Identifiable;
 import edu.uiuc.ncsa.security.core.Identifier;
@@ -47,7 +47,7 @@ public class MyProxyConnection implements MyProxyConnectable {
         
         long now = System.currentTimeMillis();
         if (info[0].getEndTime() < now) {	        	
-        	throw new MyProxyCertExpiredExcpetion("User certificate expired in Credential Store!");
+        	throw new MyProxyCertExpiredException("User certificate expired in Credential Store!");
         }			
 		
         return info[0];
