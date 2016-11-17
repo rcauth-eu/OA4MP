@@ -51,6 +51,8 @@ public abstract class ACS2 extends CRServlet {
         
         Map params = httpServletRequest.getParameterMap();
 
+        // For /getproxy the CSR is already set, still not very clean to do this
+        // check here.
         if (t.getCertReq() == null) {
             String rawCR = ((String[]) params.get(CONST(ServiceConstantKeys.CERT_REQUEST_KEY)))[0];
             MyPKCS10CertRequest certReq;
