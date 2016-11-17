@@ -18,8 +18,6 @@ import edu.uiuc.ncsa.security.delegation.token.MyX509Certificates;
 import edu.uiuc.ncsa.security.delegation.token.MyX509Proxy;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2Constants;
 import edu.uiuc.ncsa.security.util.pkcs.MyPKCS10CertRequest;
-import edu.uiuc.ncsa.security.util.pkcs.CertUtil;
-import edu.uiuc.ncsa.security.util.pkcs.KeyUtil;
 
 /**
  * Implementation of /getproxy Servlet. This servlet will create a keypair, send the CSR
@@ -35,25 +33,7 @@ public class OA2ProxyServlet extends OA2CertServlet {
 	public ServiceTransaction verifyAndGet(IssuerResponse iResponse) throws IOException {
 	
 		OA2ServiceTransaction trans = (OA2ServiceTransaction) super.verifyAndGet(iResponse);
-		
-		debug("6.a. Generating keypair for proxy creation");
-		// create keypair
-		KeyPair keyPair = null;
-		MyPKCS10CertRequest certReq = null;
-        try {
-        	keyPair = KeyUtil.generateKeyPair();
-            certReq = CertUtil.createCertRequest(keyPair, trans.getUsername());
-        } catch (Throwable e) {
-            if (e instanceof RuntimeException) {
-                throw (RuntimeException) e;
-            }
-            throw new GeneralException("Could no create cert request", e);
-        }
-        
-        // insert a CSR and generated keypair into the transaction 
-        trans.setCertReq(certReq);
-        trans.setKeypair(keyPair);
-		
+
 		Map params = iResponse.getParameters();
 		
 		// for some reason lifetime is kept in the system as milisec, but sent to MyProxy in sec (correctly)
