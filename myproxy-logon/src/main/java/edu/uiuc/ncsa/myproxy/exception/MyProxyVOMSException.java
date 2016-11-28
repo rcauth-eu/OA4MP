@@ -15,6 +15,6 @@ public class MyProxyVOMSException extends MyProxyException {
 	
     @Override
     public String getMessage() {
-    	return super.getMessage() + " ( this can occure in case the contacted VOMS server is down OR it fails to recognize the user )";
+    	return super.getMessage() + " (this can occur in case the contacted VOMS server is down OR it fails to recognize the user )";
     }
 }
