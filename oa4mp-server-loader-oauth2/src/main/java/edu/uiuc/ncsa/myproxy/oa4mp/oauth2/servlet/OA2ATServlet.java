@@ -23,6 +23,8 @@ import edu.uiuc.ncsa.security.oauth_2_0.*;
 import edu.uiuc.ncsa.security.oauth_2_0.server.*;
 import org.apache.commons.codec.digest.DigestUtils;
 
+import org.apache.http.HttpStatus;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -125,7 +127,10 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         String grantType = getFirstParameterValue(request, OA2Constants.GRANT_TYPE);
         if (grantType == null) {
             warn("Error servicing request. No grant type was given. Rejecting request.");
-            throw new GeneralException("Error: Could not service request");
+//            throw new GeneralException("Error: Could not service request");
+            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+		    "Error servicing request. No grant type was given.",
+		    HttpStatus.SC_BAD_REQUEST);
         }
         OA2Client client = (OA2Client) getClient(request);
         checkClient(client);
