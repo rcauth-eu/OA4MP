@@ -4,10 +4,14 @@ import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2SE;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.cm.ManagerFacade;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.cm.util.ResponseSerializer;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.EnvServlet;
+import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.exceptions.NotImplementedException;
 import edu.uiuc.ncsa.security.core.util.DebugUtil;
 import edu.uiuc.ncsa.security.delegation.services.Response;
+import edu.uiuc.ncsa.security.oauth_2_0.OA2ATException;
+import edu.uiuc.ncsa.security.oauth_2_0.OA2Errors;
 import net.sf.json.JSON;
+import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
 import org.apache.http.HttpStatus;
@@ -83,21 +87,34 @@ public class ClientServlet extends EnvServlet {
         }
         br.close();
         if (stringBuffer.length() == 0) {
-            throw new IllegalArgumentException("Error: There is no content for this request");
+            // Throw an OA2ATException since that produces JSON output
+            throw new OA2ATException(OA2Errors.INVALID_REQUEST, "There is no content for this request");
         }
-        JSON rawJSON = JSONSerializer.toJSON(stringBuffer.toString());
+        JSON rawJSON;
+        try {
+            rawJSON = JSONSerializer.toJSON(stringBuffer.toString());
+        } catch(JSONException e) {
+            getMyLogger().info("Error: input JSON is not valid:" + e.getMessage());
+            // Throw an OA2ATException since that produces JSON output
+            throw new OA2ATException(OA2Errors.INVALID_REQUEST, "Incorrect argument: Not a valid JSON request");
+        }
 
         DebugUtil.trace(this, rawJSON.toString());
         if (rawJSON.isArray()) {
             getMyLogger().info("Error: Got a JSON array rather than a request:" + rawJSON);
-            throw new IllegalArgumentException("Error: incorrect argument. Not a valid JSON request");
+            // Throw an OA2ATException since that produces JSON output
+            throw new OA2ATException(OA2Errors.INVALID_REQUEST, "Incorrect argument: Got a JSON array rather than a request");
         }
         try {
             Response response = getClientManager().process((JSONObject) rawJSON);
             getResponseSerializer().serialize(response, httpServletResponse);
         } catch (Throwable t) {
             t.printStackTrace();
-            throw t;
+            // Throw an OA2ATException since that produces JSON output. It's a bit of a hack, since we're not an token endpoint.
+            if (t instanceof GeneralException || t instanceof IllegalAccessException)
+                throw new OA2ATException(OA2Errors.INVALID_REQUEST, t.getMessage());
+            else
+                throw new OA2ATException(OA2Errors.INVALID_REQUEST, "Got unexpected "+t.getClass().getName());
         }
 
 

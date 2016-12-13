@@ -8,13 +8,17 @@ import edu.uiuc.ncsa.security.oauth_2_0.OA2Constants;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2RedirectableError;
 import edu.uiuc.ncsa.security.servlet.JSPUtil;
 import edu.uiuc.ncsa.security.servlet.ServiceClientHTTPException;
+import net.sf.json.JSONObject;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 /**
@@ -30,8 +34,11 @@ public class OA2ClientExceptionHandler extends ClientExceptionHandler {
     @Override
     public void handleException(Throwable t, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         if (t instanceof OA2RedirectableError) {
-            getLogger().info("get a standard error with a redirect");
             OA2RedirectableError oa2RedirectableError = (OA2RedirectableError) t;
+            getLogger().warn("Got redirectable error: " + oa2RedirectableError.getMessage() +
+                    ", error=" + oa2RedirectableError.getError() +
+                    ", description=" + oa2RedirectableError.getDescription() +
+                    ", state=" + oa2RedirectableError.getState());
             request.setAttribute(OA2Constants.ERROR, oa2RedirectableError.getError());
             request.setAttribute(OA2Constants.ERROR_DESCRIPTION, oa2RedirectableError.getDescription());
             request.setAttribute(OA2Constants.STATE, oa2RedirectableError.getState());
@@ -43,7 +50,7 @@ public class OA2ClientExceptionHandler extends ClientExceptionHandler {
             // error_description=...
             // separated by a line feed.
             ServiceClientHTTPException tt = (ServiceClientHTTPException) t;
-            getLogger().info("got standard error with http status code = " + tt.getStatus());
+            getLogger().warn(t.getClass().getSimpleName() + ": " + t.getMessage() + ", http status code = " + tt.getStatus());
 
             if (!tt.hasContent()) {
                 // can't do anything
@@ -58,24 +65,40 @@ public class OA2ClientExceptionHandler extends ClientExceptionHandler {
         } else {
             // fall through. We got some exception from someplace and have to manage it.
             // This is really last ditch.
-            getLogger().info("Got exception of type " + t.getClass().getSimpleName());
-            t.printStackTrace(); // again, something is wrong, possibly with the configuration so more info is better.
+            getLogger().warn(t.getClass().getSimpleName() + ": " + t.getMessage());
+            logStackTrace(t); // again, something is wrong, possibly with the configuration so more info is better.
             request.setAttribute(OA2Constants.ERROR, t.getClass().getSimpleName());
             request.setAttribute(OA2Constants.ERROR_DESCRIPTION, t.getMessage());
         }
 
+        // Note: we might want to distinguish between failures, especially in case of ServiceClientHTTPException,
+        // but that is hard and in practise we just return the client-error.jsp
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         request.setAttribute("action", getNormalizedContextPath());  // sets return action on error page to this web app.
+        getLogger().debug("Forwarding to "+clientServlet.getCE().getErrorPagePath());
         JSPUtil.fwd(request, response, clientServlet.getCE().getErrorPagePath());
     }
 
     /**
-     * This will parse the standard error reponse from an OIDC server.
+     * logs the stacktrace on error level to the logger.
+     * @param t Throwable that is being handled
+     */
+    private void logStackTrace(Throwable t) {
+        StringWriter errors = new StringWriter();
+        t.printStackTrace(new PrintWriter(errors));
+        getLogger().error(errors.toString());
+    }
+
+    /**
+     * This will parse the standard error response from an OIDC server.
+     * It will try to figure out whether the content looks like an HTML response,
+     * a JSON response or other and parse accordingly.
      *
-     * @param content
-     * @param request
-     * @return
+     * @param content server response.
+     * @param request request to be sent to the error page.
      */
     protected void parseContent(String content, HttpServletRequest request) {
+        // Content is either HTML page with lines KEY: "VALUE" or it's a json
         // This will take the payload and parse it as follows. The assumption is that it is of the form
         // X0=Y0
         // X1=Y1
@@ -83,23 +106,55 @@ public class OA2ClientExceptionHandler extends ClientExceptionHandler {
         // etc. where X's are standard OIDB error indicators (e.g. error_description, state) and Y's are the value
         // These are set in the response as attributes, so there is no limit on them.
         boolean hasValidContent = false;
-        StringTokenizer st = new StringTokenizer(content, "\n");
-        while (st.hasMoreElements()) {
-            String currentLine = st.nextToken();
-            StringTokenizer clST = new StringTokenizer(currentLine, "=");
-            if (!clST.hasMoreTokens() || clST.countTokens() != 2) {
-                continue;
+        if (content.startsWith("{")) {
+            // Looks like a JSON, try to parse as such
+            JSONObject errObject = JSONObject.fromObject(content);
+            // put the key/values in request, they will be used on the error page
+            Set hset = errObject.keySet();
+            for (Object obj : hset) {
+                if (obj instanceof String) {
+                    String key = (String) obj;
+                    // Note: JSON error description is plain text, not URLEncoded
+                    request.setAttribute(key, errObject.get(key).toString());
+                    hasValidContent = true; // we manage to parse at least one key
+                }
             }
-            try {
-                request.setAttribute(clST.nextToken(), URLDecoder.decode(clST.nextToken(), "UTF-8"));
-            } catch (UnsupportedEncodingException xx) {
-                // ok, try it without decoding it. (This case should never really happen)
-                request.setAttribute(clST.nextToken(), clST.nextToken());
+        } else {
+            if (! content.startsWith("<html>")) {
+                // Neither HTML nor JSON, should not happen. Will still try to parse as HTML
+                getLogger().warn("Server response has unknown content type, will try to parse.");
             }
-            hasValidContent = true;
+            // Parse as HTML page: look for lines without htmltag, then KEY: "VALUE"
+            StringTokenizer st = new StringTokenizer(content, "\n");
+            while (st.hasMoreElements()) {
+                String currentLine = st.nextToken();
+                if (currentLine.startsWith("<")) // skip lines with HTML tags
+                    continue;
+
+                StringTokenizer clST = new StringTokenizer(currentLine, ": ");
+                if (!clST.hasMoreTokens() || clST.countTokens() != 2)
+                    continue;
+
+                String key = clST.nextToken();
+                String val = clST.nextToken();
+                // value is normally put between with "
+                if (val.startsWith("\"") && val.endsWith("\""))
+                    val = val.substring(1, val.length()-1);
+
+                try {
+                    // Note: values are urlencoded in this case (to prevent issues with newlines and the like)
+                    // Add URLdecoded value
+                    request.setAttribute(key, URLDecoder.decode(val, "UTF-8").replaceAll("\n", ", "));
+                } catch (UnsupportedEncodingException xx) {
+                    // ok, try it without decoding it. (This case should never really happen)
+                    request.setAttribute(key, val);
+                }
+                hasValidContent = true;
+            }
         }
+
         if (!hasValidContent) {
-            getLogger().warn("Body or error was not parseable");
+            getLogger().warn("Body or error was not parseable, raw response = \"" + content + "\"");
             throw new GeneralException();
         }
     }

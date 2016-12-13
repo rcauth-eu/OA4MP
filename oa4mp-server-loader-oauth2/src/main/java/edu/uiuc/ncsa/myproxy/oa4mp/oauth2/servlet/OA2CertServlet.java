@@ -47,10 +47,14 @@ public class OA2CertServlet extends ACS2 {
         }
         List<String> bearerTokens = HeaderUtils.getAuthHeader(request, "Bearer");
         if (bearerTokens.isEmpty()) {
-            throw new GeneralException("Error: no access token");
+            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+                                      "Error: No access token",
+                                      HttpStatus.SC_BAD_REQUEST);
         }
         if (1 < bearerTokens.size()) {
-            throw new GeneralException("Error: too many access tokens");
+            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+                                      "Error: too many access tokens",
+                                      HttpStatus.SC_BAD_REQUEST);
         }
         AccessToken at = getServiceEnvironment().getTokenForge().getAccessToken(bearerTokens.get(0));
 
@@ -71,8 +75,9 @@ public class OA2CertServlet extends ACS2 {
         List<String> basicTokens = HeaderUtils.getAuthHeader(req, "Basic");
         if (2 < basicTokens.size()) {
             // too many tokens to unscramble
-            throw new OA2GeneralError(OA2Errors.INVALID_TOKEN, "Error: Too many authorization tokens.", HttpStatus.SC_UNAUTHORIZED);
-            //throw new GeneralException("Too many authorization tokens");
+            throw new OA2GeneralError(OA2Errors.INVALID_TOKEN,
+                                      "Error: Too many Basic Authorization headers.",
+                                      HttpStatus.SC_BAD_REQUEST);
         }
         if (rawID == null) {
             // maybe it was sent as an authorization header
@@ -102,19 +107,25 @@ public class OA2CertServlet extends ACS2 {
             }
         }
         if (rawID == null) {
+            // Note: UnknownClientException is handled in OA2ExceptionHandler as an OA2GeneralError() with an INVALID_REQUEST
             throw new UnknownClientException("No client id");
         }
         Identifier id = BasicIdentifier.newID(rawID);
         OA2Client client = (OA2Client) getClient(id);
         if(client.isPublicClient()){
-            throw new GeneralException("Error: public clients not supported for this operation.");
+            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+                                      "Error: public clients not supported for this operation.",
+                                      HttpStatus.SC_BAD_REQUEST);
         }
         if (rawSecret == null) {
-            throw new GeneralException("Error: No secret. request refused.");
+            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+                                      "Error: No client secret",
+                                      HttpStatus.SC_BAD_REQUEST);
         }
         if (!client.getSecret().equals(DigestUtils.shaHex(rawSecret))) {
-            throw new GeneralException("Error: Secret is incorrect. request refused.");
-
+            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+                                      "Error: Secret is incorrect. request refused.",
+                                      HttpStatus.SC_FORBIDDEN);
         }
         return client;
     }
@@ -125,20 +136,18 @@ public class OA2CertServlet extends ACS2 {
         OA2ServiceTransaction t = (OA2ServiceTransaction) getTransactionStore().get(accessToken);
         // CIL-404 fix. Throw appropriate exceptions. Do not use the callback mechanism from OAuth for errors since that returns
         // an HTTP status code of 200 with no other information.
-        if (t == null) {
-            throw new GeneralException("Invalid access token. Request refused");
+        if (t == null || !t.isAccessTokenValid()) {
+            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+                                      "Invalid access token. Request refused",
+                                      HttpStatus.SC_FORBIDDEN);
         }
         if (!t.getScopes().contains(OA2Scopes.SCOPE_MYPROXY)) {
             // Note that this requires a state, but none is sent in the OA4MP cert request.
-            throw new GeneralException("Certificate request is not in scope.");
-        }
-        if (t == null) {
-            throw new GeneralException("No transaction found for access token \"" + accessToken + "\"");
+            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+                                      "Missing scope for certificate request",
+                                      HttpStatus.SC_BAD_REQUEST);
         }
 
-        if (!t.isAccessTokenValid()) {
-            throw new GeneralException("Invalid access token. Request refused");
-        }
         checkClientApproval(t.getClient());
         // Access tokens must be valid in order to get a cert. If the token is invalid, the user must
         // get a valid one using the refresh token.

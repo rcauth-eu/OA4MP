@@ -7,7 +7,6 @@ import edu.uiuc.ncsa.security.delegation.server.ExceptionWrapper;
 import edu.uiuc.ncsa.security.delegation.server.UnapprovedClientException;
 import edu.uiuc.ncsa.security.oauth_2_0.*;
 import edu.uiuc.ncsa.security.servlet.ExceptionHandler;
-import edu.uiuc.ncsa.security.servlet.ServletDebugUtil;
 import net.sf.json.JSONObject;
 import org.apache.http.HttpStatus;
 
@@ -16,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
@@ -37,7 +37,6 @@ public class OA2ExceptionHandler implements ExceptionHandler {
 
     @Override
     public void handleException(Throwable t, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        ServletDebugUtil.dbg(this,"Error", t);
         if (t instanceof ExceptionWrapper) {
             // In this case we are getting this as a response after a forward to another servlet and have to unpack it.
             t = t.getCause();
@@ -46,15 +45,21 @@ public class OA2ExceptionHandler implements ExceptionHandler {
         if (t == null) {
             // really messed up, should never ever happen
             t = new OA2GeneralError(OA2Errors.SERVER_ERROR, "Internal error", HttpStatus.SC_INTERNAL_SERVER_ERROR);
+            logger.error("Error: Throwable is null");
+            logStackTrace(t);
         }
+
+        // Log the message as warning
+        logger.warn(t.getClass().getSimpleName() + ": " + t.getMessage());
+
         // If there is really a servlet exception (defined as a bonafide unrecoverable state, like storage is down or
         // no client_id, e.g.) then pass back the servlet exception and let the container handle it. At some point we might just
         // want to have a pretty page for this.
         if (t instanceof ServletException) {
+            logStackTrace(t);
             response.setStatus(500);
             throw (ServletException) t;
         }
-        ;
 
         if (t instanceof OA2GeneralError) {
             handleOA2Error((OA2GeneralError) t, response);
@@ -71,34 +76,72 @@ public class OA2ExceptionHandler implements ExceptionHandler {
         }
         // The next couple of exceptions can be thrown when there is no client (so the callback uri cannot be verified
         if ((t instanceof UnknownClientException) || (t instanceof UnapprovedClientException)) {
-            t.printStackTrace();
-            //  throw (GeneralException) t;
-            throw new ServletException(t.getMessage());
-            //throw new OA2GeneralError(OA2Errors.INVALID_REQUEST, t.getMessage(), HttpStatus.SC_BAD_REQUEST);
-            //handleOA2Error(new OA2GeneralError(OA2Errors.INVALID_REQUEST, t.getMessage(), HttpStatus.SC_BAD_REQUEST), response);
-            //  return;
-
+            // Even though we cannot verify the callback, that is also not going
+            // to be used here, since we call handleOA2Error(OA2GeneralError, HttpServletResponse), see below
+            handleOA2Error(new OA2GeneralError(OA2Errors.INVALID_REQUEST, t.getMessage(), HttpStatus.SC_BAD_REQUEST), response);
+            return;
+        }
+        // Typically can be thrown when some required arguments are missing
+        if (t instanceof IllegalArgumentException) {
+            logStackTrace(t);
+            handleOA2Error(new OA2GeneralError(OA2Errors.INVALID_REQUEST, t.getMessage(), HttpStatus.SC_BAD_REQUEST), response);
+            return;
         }
         if (t instanceof GeneralException) {
+            logStackTrace(t);
             handleOA2Error(new OA2GeneralError(OA2Errors.SERVER_ERROR, t.getMessage(), HttpStatus.SC_INTERNAL_SERVER_ERROR), response);
             return;
         }
+        // If we're here we received another type of exception.
+        logStackTrace(t);
+        handleOA2Error(new OA2GeneralError(OA2Errors.SERVER_ERROR, "Got unexpected exception", HttpStatus.SC_INTERNAL_SERVER_ERROR), response);
+    }
+
+    /**
+     * logs the stacktrace on error level to the logger.
+     * @param t Throwable that is being handled
+     */
+    private void logStackTrace(Throwable t) {
+        StringWriter errors = new StringWriter();
+        t.printStackTrace(new PrintWriter(errors));
+        logger.error(errors.toString());
     }
 
     protected String encode(String x) throws UnsupportedEncodingException {
         return URLEncoder.encode(x, "UTF-8");
     }
 
+    /**
+     * Handles errors of type {@link OA2GeneralError}, which are intended to be human-readable.
+     * NOTE: if the format here changes, the parsing in
+     * edu.uiuc.ncsa.oa4mp.oauth2.client.servlet.OA2ClientExceptionHandler needs changing too.
+     * @param oa2GeneralError exception to handle
+     * @param response response to be returned to the client
+     * @throws IOException in case of write errors
+     * @see #handleException(Throwable, HttpServletRequest, HttpServletResponse)
+     */
     protected void handleOA2Error(OA2GeneralError oa2GeneralError, HttpServletResponse response) throws IOException {
-        PrintWriter writer = response.getWriter();
         response.setStatus(oa2GeneralError.getHttpStatus());
-        writer.println(OA2Constants.ERROR + "=\"" + encode(oa2GeneralError.getError()) + "\"");
-        writer.println(OA2Constants.ERROR_DESCRIPTION + "=\"" + encode(oa2GeneralError.getDescription()) + "\"");
+        response.setHeader("Content-Type", "text/html;charset=UTF-8");
+        PrintWriter writer = response.getWriter();
+        writer.println("<html>\n<title>Server Error</title>\n<h1>Server Error</h1>");
+        writer.println(OA2Constants.ERROR + ": \"" + encode(oa2GeneralError.getError()) + "\"\n<br>");
+        writer.println(OA2Constants.ERROR_DESCRIPTION + ": \"" + encode(oa2GeneralError.getDescription()) + "\"\n<br>");
+        writer.println("</html>");
         writer.flush();
         writer.close();
     }
 
     // Fix for CIL-332: This should now send JSON with the correct http status.
+    /**
+     * Handles errors of type {@link OA2ATException}, which are intended to be human-readable.
+     * NOTE: if the format here changes, the parsing in
+     * edu.uiuc.ncsa.oa4mp.oauth2.client.servlet.OA2ClientExceptionHandler needs changing too.
+     * @param oa2ATException exception to handle
+     * @param response response to be returned to the client
+     * @throws IOException in case of write errors
+     * @see #handleException(Throwable, HttpServletRequest, HttpServletResponse)
+     */
     protected void handleOA2Error(OA2ATException oa2ATException, HttpServletResponse response) throws IOException {
         response.setStatus(oa2ATException.getStatusCode());
         response.setHeader("Content-Type", "application/json;charset=UTF-8");

@@ -60,10 +60,14 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         try {
             st.setCallback(URI.create(givenRedirect));
         } catch (Throwable t) {
-            throw new InvalidURIException("Invalid redirect URI \"" + givenRedirect + "\"", t);
+            throw new OA2ATException(OA2Errors.INVALID_REQUEST, "Invalid redirect URI \"" + givenRedirect + "\"");
         }
         //Spec says that the redirect must match one of the ones stored and if not, the request is rejected.
-        OA2ClientCheck.check(st.getClient(), givenRedirect);
+        try {
+            OA2ClientCheck.check(st.getClient(), givenRedirect);
+        } catch (Throwable t) {
+            throw new OA2ATException(OA2Errors.INVALID_REQUEST, t.getMessage());
+        }
         // Store the callback the user needs to use for this request, since the spec allows for many.
 
         // If there is a nonce in the initial request, it must be returned as part of the access token
@@ -151,13 +155,13 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         String grantType = getFirstParameterValue(request, OA2Constants.GRANT_TYPE);
         if (isEmpty(grantType)) {
             warn("Error servicing request. No grant type was given. Rejecting request.");
-            throw new GeneralException("Error: Could not service request");
+            throw new OA2ATException(OA2Errors.INVALID_REQUEST, "Error servicing request. No grant type was given.");
         }
         if (executeByGrant(grantType, request, response)) {
             return;
         }
-        warn("Error: grant type was not recognized. Request rejected.");
-        throw new ServletException("Error: Unknown request type.");
+        warn("Error: grant type \"" + grantType + "\" was not recognized. Request rejected.");
+        throw new OA2ATException(OA2Errors.INVALID_REQUEST, "Error: Invalid grant type.");
     }
 
     protected IssuerTransactionState doAT(HttpServletRequest request, HttpServletResponse response, OA2Client client) throws Throwable {
@@ -167,7 +171,7 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         atResponse.setSignToken(client.isSignTokens());
         OA2ServiceTransaction st2 = (OA2ServiceTransaction) state.getTransaction();
         if (!st2.getFlowStates().acceptRequests || !st2.getFlowStates().accessToken) {
-            throw new OA2GeneralError(OA2Errors.ACCESS_DENIED, "access denied", HttpStatus.SC_UNAUTHORIZED);
+            throw new OA2ATException(OA2Errors.ACCESS_DENIED, "access denied", HttpStatus.SC_FORBIDDEN);
         }
         OA2ClaimsUtil claimsUtil = new OA2ClaimsUtil((OA2SE) getServiceEnvironment(), st2);
         claimsUtil.processClaims();
@@ -251,7 +255,7 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         // cannot hijack the session
         if (paramID == null) {
             if (headerID == null) {
-                throw new UnknownClientException("Error: no client identifier given");
+                throw new OA2ATException(OA2Errors.INVALID_REQUEST, "Missing client identifier", HttpStatus.SC_FORBIDDEN);
             }
             client = (OA2Client) getClient(headerID);
         } else {
@@ -259,7 +263,7 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
                 client = (OA2Client) getClient(paramID);
             } else {
                 if (!paramID.equals(headerID)) {
-                    throw new UnknownClientException("Error: Too many client identifiers. Cannot resolve client");
+                    throw new OA2ATException(OA2Errors.INVALID_REQUEST, "Too many client identifiers. Cannot resolve client");
                 }
                 client = (OA2Client) getClient(paramID); // doesn't matter which id we use since they are equal.
             }
@@ -276,18 +280,20 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         if (rawSecret == null) {
             // check headers.
             DebugUtil.dbg(this, "doIt: no secret, throwing exception.");
-            throw new OA2ATException(OA2Errors.UNAUTHORIZED_CLIENT, "Missing secret");
+            throw new OA2ATException(OA2Errors.UNAUTHORIZED_CLIENT, "Missing secret", HttpStatus.SC_FORBIDDEN);
         }
         if (!client.getSecret().equals(DigestUtils.shaHex(rawSecret))) {
             DebugUtil.dbg(this, "doIt: bad secret, throwing exception.");
-            throw new OA2ATException(OA2Errors.UNAUTHORIZED_CLIENT, "Incorrect secret");
+            throw new OA2ATException(OA2Errors.UNAUTHORIZED_CLIENT, "Incorrect secret", HttpStatus.SC_FORBIDDEN);
         }
 
     }
 
     protected OA2ServiceTransaction getByRT(RefreshToken refreshToken) throws IOException {
-        if (refreshToken == null) {
-            throw new GeneralException("Error: null refresh token encountered.");
+        if (refreshToken == null || refreshToken.getToken() == null) {
+            String msg="Error: null refresh token encountered.";
+            warn(msg);
+            throw new OA2ATException(OA2Errors.INVALID_REQUEST, msg);
         }
         RefreshTokenStore rts = (RefreshTokenStore) getTransactionStore();
         return rts.get(refreshToken);
@@ -300,22 +306,28 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
     protected TransactionState doRefresh(OA2Client c, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         RefreshToken oldRT = getTF2().getRefreshToken(request.getParameter(OA2Constants.REFRESH_TOKEN));
         if (c == null) {
-            throw new InvalidTokenException("Could not find the client associated with refresh token \"" + oldRT + "\"");
+            throw new OA2ATException(OA2Errors.INVALID_TOKEN, "Could not find the client associated with refresh token \"" + oldRT + "\"");
         }
 
         OA2ServiceTransaction t = getByRT(oldRT);
         OA2SE oa2SE = (OA2SE) getServiceEnvironment();
+        if (t == null || !t.isRefreshTokenValid()) {
+            String msg="Error: The refresh token is no longer valid.";
+            warn(msg);
+            throw new OA2ATException(OA2Errors.INVALID_TOKEN, msg, HttpStatus.SC_FORBIDDEN);
+        }
         if (!t.getFlowStates().acceptRequests || !t.getFlowStates().refreshToken) {
-            throw new OA2GeneralError(OA2Errors.ACCESS_DENIED, "refresh token access denied", HttpStatus.SC_UNAUTHORIZED);
+            String msg="refresh token access denied";
+            warn(msg);
+            throw new OA2ATException(OA2Errors.ACCESS_DENIED, msg, HttpStatus.SC_FORBIDDEN);
 
         }
         if ((!(oa2SE).isRefreshTokenEnabled()) || (!c.isRTLifetimeEnabled())) {
-            throw new OA2ATException(OA2Errors.REQUEST_NOT_SUPPORTED, "Refresh tokens are not supported on this server");
+            String msg="Refresh tokens are not supported on this server";
+            warn(msg);
+            throw new OA2ATException(OA2Errors.REQUEST_NOT_SUPPORTED, msg);
         }
 
-        if (t == null || !t.isRefreshTokenValid()) {
-            throw new OA2ATException(OA2Errors.INVALID_REQUEST, "Error: The refresh token is no longer valid.");
-        }
         t.setRefreshTokenValid(false); // this way if it fails at some point we know it is invalid.
         AccessToken at = t.getAccessToken();
         RTIRequest rtiRequest = new RTIRequest(request, c, at, oa2SE.isOIDCEnabled());
@@ -394,32 +406,46 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         OA2ServiceTransaction transaction = (OA2ServiceTransaction) transactionStore.get(basicIdentifier);
         if (transaction == null) {
             // Then this request does not correspond to an previous one and must be rejected asap.
-            throw new OA2ATException(OA2Errors.INVALID_REQUEST, "No pending transaction found for id=" + basicIdentifier);
+            String msg="No pending transaction found for id=" + basicIdentifier;
+            warn(msg);
+            throw new OA2ATException(OA2Errors.INVALID_REQUEST, msg);
         }
         if (!transaction.isAuthGrantValid()) {
-            String msg = "Error: Attempt to use invalid authorization code.  Request rejected.";
+            String msg = "Error: Attempt to use invalid authorization code. Request rejected.";
             warn(msg);
-            throw new GeneralException(msg);
+            throw new OA2ATException(OA2Errors.INVALID_REQUEST, msg, HttpStatus.SC_FORBIDDEN);
         }
 
-        boolean uriOmittedOK = false;
         if (!atResponse.getParameters().containsKey(OA2Constants.REDIRECT_URI)) {
             // OK, the spec states that if we get to this point (so the redirect URI has been verified) a client with a
             // **single** registered redirect uri **MAY** be omitted. It seems that various python libraries do not
             // send it in this case, so we have the option to accept or reject the request.
-            if (((OA2Client) transaction.getClient()).getCallbackURIs().size() == 1) {
-                uriOmittedOK = true;
-            } else {
-                throw new GeneralException("Error: No redirect URI. Request rejected.");
+            if (((OA2Client) transaction.getClient()).getCallbackURIs().size() != 1) {
+                String msg = "Error: No redirect URI. Request rejected.";
+                warn(msg);
+                throw new OA2ATException(OA2Errors.INVALID_REQUEST, msg, HttpStatus.SC_FORBIDDEN);
             }
-        }
-        if (!uriOmittedOK) {
+        } else {
             // so if the URI is sent, verify it
-            URI uri = URI.create(atResponse.getParameters().get(OA2Constants.REDIRECT_URI));
+            String redirect_uri = atResponse.getParameters().get(OA2Constants.REDIRECT_URI);
+            if (redirect_uri.isEmpty()) {
+                String msg = "Error: empty "+OA2Constants.REDIRECT_URI+" parameter in request. Request rejected.";
+                warn(msg);
+                throw new OA2ATException(OA2Errors.INVALID_REQUEST, msg);
+            }
+            URI uri;
+            try {
+                uri = URI.create(redirect_uri);
+            } catch (Throwable t) {
+                String msg = "Error: redirect_uri "+redirect_uri+" is not valid: "+t.getMessage();
+                warn(msg);
+                throw new OA2ATException(OA2Errors.INVALID_REQUEST, msg);
+            }
+
             if (!transaction.getCallback().equals(uri)) {
                 String msg = "Attempt to use alternate redirect uri rejected.";
                 warn(msg);
-                throw new OA2ATException(OA2Errors.INVALID_REQUEST, msg);
+                throw new OA2ATException(OA2Errors.INVALID_REQUEST, msg, HttpStatus.SC_FORBIDDEN);
             }
         }
         /* Now we have to determine which scopes to return
