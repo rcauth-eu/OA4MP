@@ -30,8 +30,8 @@ public class OA2ClientExceptionHandler extends ClientExceptionHandler {
     @Override
     public void handleException(Throwable t, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         if (t instanceof OA2RedirectableError) {
-            getLogger().info("get a standard error with a redirect");
             OA2RedirectableError oa2RedirectableError = (OA2RedirectableError) t;
+            getLogger().info("get a standard error with a redirect: error="+oa2RedirectableError.getError()+", description="+oa2RedirectableError.getDescription()+", state="+oa2RedirectableError.getState());
             request.setAttribute(OA2Constants.ERROR, oa2RedirectableError.getError());
             request.setAttribute(OA2Constants.ERROR_DESCRIPTION, oa2RedirectableError.getDescription());
             request.setAttribute(OA2Constants.STATE, oa2RedirectableError.getState());
@@ -64,7 +64,11 @@ public class OA2ClientExceptionHandler extends ClientExceptionHandler {
             request.setAttribute(OA2Constants.ERROR_DESCRIPTION, t.getMessage());
         }
 
+        // Note: we might want to distinguish between failures, especially in case of ServiceClientHTTPException,
+        // but that is hard and in practise we just return the client-error.jsp
+        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         request.setAttribute("action", getNormalizedContextPath());  // sets return action on error page to this web app.
+        getLogger().debug("Forwarding to "+clientServlet.getCE().getErrorPagePath());
         JSPUtil.fwd(request, response, clientServlet.getCE().getErrorPagePath());
     }
 

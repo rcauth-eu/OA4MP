@@ -72,12 +72,9 @@ public class OA2ExceptionHandler implements ExceptionHandler {
         // The next couple of exceptions can be thrown when there is no client (so the callback uri cannot be verified
         if ((t instanceof UnknownClientException) || (t instanceof UnapprovedClientException)) {
             t.printStackTrace();
-            //  throw (GeneralException) t;
-            throw new ServletException(t.getMessage());
-            //throw new OA2GeneralError(OA2Errors.INVALID_REQUEST, t.getMessage(), HttpStatus.SC_BAD_REQUEST);
-            //handleOA2Error(new OA2GeneralError(OA2Errors.INVALID_REQUEST, t.getMessage(), HttpStatus.SC_BAD_REQUEST), response);
-            //  return;
-
+            // Even though we cannot verify the callback, that is also not going
+            // to be used here, since we call handleOA2Error(OA2GeneralError, HttpServletResponse), see below
+            handleOA2Error(new OA2GeneralError(OA2Errors.INVALID_REQUEST, t.getMessage(), HttpStatus.SC_BAD_REQUEST), response);
         }
         if (t instanceof GeneralException) {
             handleOA2Error(new OA2GeneralError(OA2Errors.SERVER_ERROR, t.getMessage(), HttpStatus.SC_INTERNAL_SERVER_ERROR), response);
@@ -90,10 +87,13 @@ public class OA2ExceptionHandler implements ExceptionHandler {
     }
 
     protected void handleOA2Error(OA2GeneralError oa2GeneralError, HttpServletResponse response) throws IOException {
-        PrintWriter writer = response.getWriter();
         response.setStatus(oa2GeneralError.getHttpStatus());
-        writer.println(OA2Constants.ERROR + "=\"" + encode(oa2GeneralError.getError()) + "\"");
-        writer.println(OA2Constants.ERROR_DESCRIPTION + "=\"" + encode(oa2GeneralError.getDescription()) + "\"");
+        response.setHeader("Content-Type", "text/html;charset=UTF-8");
+        PrintWriter writer = response.getWriter();
+        writer.println("<html>\n<title>Server Error</title>\n<h1>Server Error</h1>");
+        writer.println(OA2Constants.ERROR + ": \"" + encode(oa2GeneralError.getError()) + "\"<br>");
+        writer.println(OA2Constants.ERROR_DESCRIPTION + ": \"" + encode(oa2GeneralError.getDescription()) + "\"<br>");
+        writer.println("</html>");
         writer.flush();
         writer.close();
     }
