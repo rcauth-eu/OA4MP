@@ -5,7 +5,12 @@ import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.BasicScopeHandler;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.LDAPScopeHandler;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.*;
-import edu.uiuc.ncsa.myproxy.oa4mp.server.*;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.ClientApprovalProvider;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.OA4MPConfigTags;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.ServiceConstantKeys;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.ServiceEnvironmentImpl;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.transactions.DSTransactionProvider;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.transactions.OA4MPIdentifierProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.AbstractConfigurationLoader;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.MultiDSClientApprovalStoreProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.MultiDSClientStoreProvider;
@@ -13,13 +18,13 @@ import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.filestore.DSFSClientApprovalSt
 import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.filestore.DSFSClientStoreProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.sql.provider.DSSQLClientApprovalStoreProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.util.ClientApproverConverter;
-import edu.uiuc.ncsa.myproxy.oa4mp.server.util.OA4MPIdentifierProvider;
 import edu.uiuc.ncsa.security.core.IdentifiableProvider;
 import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.configuration.Configurations;
 import edu.uiuc.ncsa.security.core.configuration.provider.CfgEvent;
 import edu.uiuc.ncsa.security.core.configuration.provider.TypedProvider;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
+import edu.uiuc.ncsa.security.core.util.DebugUtil;
 import edu.uiuc.ncsa.security.core.util.IdentifierProvider;
 import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 import edu.uiuc.ncsa.security.delegation.server.issuers.AGIssuer;
@@ -28,16 +33,12 @@ import edu.uiuc.ncsa.security.delegation.server.issuers.PAIssuer;
 import edu.uiuc.ncsa.security.delegation.server.storage.ClientApprovalStore;
 import edu.uiuc.ncsa.security.delegation.server.storage.ClientStore;
 import edu.uiuc.ncsa.security.delegation.server.storage.impl.ClientApprovalMemoryStore;
-import edu.uiuc.ncsa.security.delegation.server.storage.impl.ClientMemoryStore;
 import edu.uiuc.ncsa.security.delegation.storage.Client;
 import edu.uiuc.ncsa.security.delegation.storage.ClientApprovalKeys;
 import edu.uiuc.ncsa.security.delegation.storage.TransactionStore;
 import edu.uiuc.ncsa.security.delegation.token.TokenForge;
 import edu.uiuc.ncsa.security.oauth_2_0.*;
-import edu.uiuc.ncsa.security.oauth_2_0.server.AGI2;
-import edu.uiuc.ncsa.security.oauth_2_0.server.ATI2;
-import edu.uiuc.ncsa.security.oauth_2_0.server.PAI2;
-import edu.uiuc.ncsa.security.oauth_2_0.server.ScopeHandler;
+import edu.uiuc.ncsa.security.oauth_2_0.server.*;
 import edu.uiuc.ncsa.security.storage.data.MapConverter;
 import edu.uiuc.ncsa.security.storage.sql.ConnectionPool;
 import edu.uiuc.ncsa.security.storage.sql.ConnectionPoolProvider;
@@ -47,7 +48,7 @@ import javax.inject.Provider;
 import java.util.Collection;
 import java.util.HashMap;
 
-import static edu.uiuc.ncsa.myproxy.oa4mp.server.util.OA4MPIdentifierProvider.TRANSACTION_ID;
+import static edu.uiuc.ncsa.myproxy.oa4mp.server.admin.transactions.OA4MPIdentifierProvider.TRANSACTION_ID;
 import static edu.uiuc.ncsa.security.core.util.IdentifierProvider.SCHEME;
 import static edu.uiuc.ncsa.security.core.util.IdentifierProvider.SCHEME_SPECIFIC_PART;
 import static edu.uiuc.ncsa.security.oauth_2_0.OA2ConfigTags.*;
@@ -93,6 +94,8 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
                     getAuthorizationServletConfig(),
                     getUsernameTransformer(),
                     getPingable(),
+                    getMpp(),
+                    getMacp(),
                     getClientSecretLength(),
                     getScopes(),
                     getScopeHandler(),
@@ -199,7 +202,10 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
     protected long getRTLifetime() {
         if (rtLifetime < 0) {
             String x = Configurations.getFirstAttribute(cn, REFRESH_TOKEN_LIFETIME);
-            if (x != null) {
+            // Fixes OAUTH-214
+            if (x == null || x.length() == 0) {
+                rtLifetime = REFRESH_TOKEN_LIFETIME_DEFAULT;
+            } else {
                 try {
                     rtLifetime = Long.parseLong(x) * 1000; // The configuration file has this in seconds. Internally this is ms.
                 } catch (Throwable t) {
@@ -212,19 +218,24 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
     }
 
     long maxClientRefreshTokenLifetime = -1L;
-    protected long getMaxClientRefreshTokenLifetime(){
+
+    protected long getMaxClientRefreshTokenLifetime() {
         if (maxClientRefreshTokenLifetime < 0) {
-                  String x = Configurations.getFirstAttribute(cn, MAX_CLIENT_REFRESH_TOKEN_LIFETIME);
-                  if (x != null) {
-                      try {
-                          maxClientRefreshTokenLifetime = Long.parseLong(x) * 1000; // The configuration file has this in seconds. Internally this is ms.
-                      } catch (Throwable t) {
-                          maxClientRefreshTokenLifetime = 13*30*24*3600*1000L; // default of 13 months.
-                      }
-                  }
-              }
-              return maxClientRefreshTokenLifetime;
+            String x = Configurations.getFirstAttribute(cn, MAX_CLIENT_REFRESH_TOKEN_LIFETIME);
+            // Fixes OAUTH-214
+            if (x == null || x.length() == 0) {
+                maxClientRefreshTokenLifetime = 13 * 30 * 24 * 3600 * 1000L; // default of 13 months.
+            } else {
+                try {
+                    maxClientRefreshTokenLifetime = Long.parseLong(x) * 1000; // The configuration file has this in seconds. Internally this is ms.
+                } catch (Throwable t) {
+                    maxClientRefreshTokenLifetime = 13 * 30 * 24 * 3600 * 1000L; // default of 13 months.
+                }
+            }
+        }
+        return maxClientRefreshTokenLifetime;
     }
+
     public boolean isRefreshTokenEnabled() {
         if (refreshTokenEnabled == null) {
             String x = Configurations.getFirstAttribute(cn, REFRESH_TOKEN_ENABLED);
@@ -243,21 +254,22 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
     }
 
     Boolean twoFactorSupportEnabled = null;
-    public boolean isTwoFactorSupportEnabled(){
-     if(twoFactorSupportEnabled == null){
-         String x = Configurations.getFirstAttribute(cn, ENABLE_TWO_FACTOR_SUPPORT);
-         if (x == null) {
-             twoFactorSupportEnabled = Boolean.FALSE;
-         } else {
-             try {
-                 twoFactorSupportEnabled = Boolean.valueOf(x);
-             } catch (Throwable t) {
-                 info("Could not parse two factor enabled attribute. Setting default to false.");
-                 twoFactorSupportEnabled = Boolean.FALSE;
-             }
-         }
 
-     }
+    public boolean isTwoFactorSupportEnabled() {
+        if (twoFactorSupportEnabled == null) {
+            String x = Configurations.getFirstAttribute(cn, ENABLE_TWO_FACTOR_SUPPORT);
+            if (x == null) {
+                twoFactorSupportEnabled = Boolean.FALSE;
+            } else {
+                try {
+                    twoFactorSupportEnabled = Boolean.valueOf(x);
+                } catch (Throwable t) {
+                    info("Could not parse two factor enabled attribute. Setting default to false.");
+                    twoFactorSupportEnabled = Boolean.FALSE;
+                }
+            }
+
+        }
         return twoFactorSupportEnabled;
     }
 
@@ -270,6 +282,7 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
     protected ScopeHandler scopeHandler;
 
     public ScopeHandler getScopeHandler() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+        DebugUtil.dbg(this,"Getting scope handler " + scopeHandler);
         if (scopeHandler == null) {
             // This gets the scopes if any and injects them into the scope handler.
             if (0 < cn.getChildrenCount(SCOPES)) {
@@ -287,15 +300,23 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
                     info("Scope handler attribute found in configuration, but no value was found for it. Skipping custom loaded scope handling.");
                 }
             }
+
             // no scopes element, so just use the basic handler.
             if (scopeHandler == null) {
+
+                DebugUtil.dbg(this,"No configured Scope handler");
                 if (getLdapConfiguration().isEnabled()) {
-                    scopeHandler = new LDAPScopeHandler();
+                    DebugUtil.dbg(this,"   LDAP scope handler enabled, creating default");
+
+                    scopeHandler = new LDAPScopeHandler(getLdapConfiguration(), myLogger);
                 } else {
+                    DebugUtil.dbg(this,"   LDAP scope handler disabled, creating basic");
                     scopeHandler = new BasicScopeHandler();
                 }
             }
             scopeHandler.setScopes(getScopes());
+            DebugUtil.dbg(this, "   Actual scope handler = " + scopeHandler.getClass().getSimpleName());
+
         }
         return scopeHandler;
     }
@@ -347,12 +368,26 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
         	return new OA2ServiceTransaction(createNewId(createNewIdentifier));
         }
     }
+     public static class OA2MultiDSClientStoreProvider extends MultiDSClientStoreProvider{
+         public OA2MultiDSClientStoreProvider(ConfigurationNode config, boolean disableDefaultStore, MyLoggingFacade logger) {
+             super(config, disableDefaultStore, logger);
+         }
 
+         public OA2MultiDSClientStoreProvider(ConfigurationNode config, boolean disableDefaultStore, MyLoggingFacade logger, String type, String target, IdentifiableProvider clientProvider) {
+             super(config, disableDefaultStore, logger, type, target, clientProvider);
+         }
+
+         @Override
+         public ClientStore getDefaultStore() {
+             logger.info("Using default in memory client store");
+                 return new OA2ClientMemoryStore(clientProvider);
+         }
+     }
     @Override
     protected MultiDSClientStoreProvider getCSP() {
         if (csp == null) {
             OA2ClientConverter converter = new OA2ClientConverter(getClientProvider());
-            csp = new MultiDSClientStoreProvider(cn, isDefaultStoreDisabled(), loggerProvider.get(), null, null, getClientProvider());
+            csp = new OA2MultiDSClientStoreProvider(cn, isDefaultStoreDisabled(), loggerProvider.get(), null, null, getClientProvider());
 
             csp.addListener(new DSFSClientStoreProvider(cn, converter, getClientProvider()));
             csp.addListener(new OA2ClientSQLStoreProvider(getMySQLConnectionPoolProvider(),
@@ -376,7 +411,7 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
 
                 @Override
                 public ClientStore get() {
-                    return new ClientMemoryStore(getClientProvider());
+                    return new OA2ClientMemoryStore(getClientProvider());
                 }
             });
         }

@@ -1,5 +1,9 @@
 package edu.uiuc.ncsa.myproxy.oa4mp.server;
 
+import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.adminClient.AdminClient;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.adminClient.AdminClientStore;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.permissions.Permission;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.permissions.PermissionsStore;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.AuthorizationServletConfig;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.util.AbstractCLIApprover;
 import edu.uiuc.ncsa.security.core.configuration.Configurations;
@@ -146,10 +150,12 @@ public class ServiceEnvironmentImpl extends MyProxyServiceEnvironment implements
                                   Provider<ATIssuer> atip,
                                   Provider<PAIssuer> paip,
                                   Provider<TokenForge> tfp,
-                                  HashMap<String,String> constants,
+                                  HashMap<String, String> constants,
                                   AuthorizationServletConfig ac,
                                   UsernameTransformer usernameTransformer,
-                                  boolean isPingable) {
+                                  boolean isPingable,
+                                  Provider<PermissionsStore> psp,
+                                  Provider<AdminClientStore> acs) {
         super(logger, mfp, constants);
         this.casp = casp;
         this.csp = csp;
@@ -164,6 +170,8 @@ public class ServiceEnvironmentImpl extends MyProxyServiceEnvironment implements
         this.maxAllowedNewClientRequests = maxAllowedNewClientRequests;
         this.usernameTransformer = usernameTransformer;
         setPingable(isPingable);
+        this.psp = psp;
+        this.acs = acs;
     }
 
     MessagesProvider messagesProvider;
@@ -176,7 +184,8 @@ public class ServiceEnvironmentImpl extends MyProxyServiceEnvironment implements
     protected Provider<ATIssuer> atip;
     protected Provider<PAIssuer> paip;
     protected Provider<TokenForge> tfp;
-
+    protected Provider<PermissionsStore> psp;
+    protected Provider<AdminClientStore> acs;
 
 
     Map<String, String> messages;
@@ -192,6 +201,24 @@ public class ServiceEnvironmentImpl extends MyProxyServiceEnvironment implements
             }
         }
         return messages;
+    }
+
+    AdminClientStore adminClientStore = null;
+
+    public AdminClientStore<AdminClient> getAdminClientStore() {
+        if (adminClientStore == null) {
+            adminClientStore = acs.get();
+        }
+        return adminClientStore;
+    }
+
+    PermissionsStore permissionsStore = null;
+
+    public PermissionsStore<Permission> getPermissionStore() {
+        if (permissionsStore == null) {
+            permissionsStore = psp.get();
+        }
+        return permissionsStore;
     }
 
     @Override
@@ -223,8 +250,6 @@ public class ServiceEnvironmentImpl extends MyProxyServiceEnvironment implements
         }
         return mailUtil;
     }
-
-
 
 
     @Override
@@ -260,13 +285,14 @@ public class ServiceEnvironmentImpl extends MyProxyServiceEnvironment implements
 
     /**
      * Use the setter to customize the user name transformation.
+     *
      * @return
      */
-    public UsernameTransformer getUsernameTransformer(){
-      return usernameTransformer;
+    public UsernameTransformer getUsernameTransformer() {
+        return usernameTransformer;
     }
 
-    public void setUsernameTransformer(UsernameTransformer usernameTransformer){
+    public void setUsernameTransformer(UsernameTransformer usernameTransformer) {
         this.usernameTransformer = usernameTransformer;
     }
 

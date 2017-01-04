@@ -1,19 +1,22 @@
 package edu.uiuc.ncsa.myproxy.oa4mp.server.servlet;
 
 import edu.uiuc.ncsa.myproxy.MyProxyServiceFacade;
-import edu.uiuc.ncsa.myproxy.oa4mp.server.*;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.ClientApprovalProvider;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.OA4MPConfigTags;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.OA4MPServiceTransaction;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.ServiceEnvironmentImpl;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.adminClient.AdminClientStore;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.adminClient.AdminClientStoreProviders;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.adminClient.MultiDSAdminClientStoreProvider;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.permissions.MultiDSPermissionStoreProvider;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.permissions.PermissionStoreProviders;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.transactions.*;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.MultiDSClientApprovalStoreProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.MultiDSClientStoreProvider;
-import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.MultiDSTransactionStoreProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.filestore.DSFSClientApprovalStoreProvider;
-import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.filestore.DSFSClientStoreProvider;
-import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.filestore.DSFSTransactionStoreProvider;
-import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.sql.provider.DSClientSQLStoreProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.sql.provider.DSSQLClientApprovalStoreProvider;
-import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.sql.provider.DSSQLTransactionStoreProvider;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.util.AbstractCLIApprover;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.util.ClientApproverConverter;
-import edu.uiuc.ncsa.myproxy.oa4mp.server.util.TransactionConverter;
 import edu.uiuc.ncsa.security.core.configuration.Configurations;
 import edu.uiuc.ncsa.security.core.configuration.provider.CfgEvent;
 import edu.uiuc.ncsa.security.core.configuration.provider.TypedProvider;
@@ -21,10 +24,8 @@ import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 import edu.uiuc.ncsa.security.delegation.server.storage.ClientApprovalStore;
 import edu.uiuc.ncsa.security.delegation.server.storage.ClientStore;
 import edu.uiuc.ncsa.security.delegation.server.storage.impl.ClientApprovalMemoryStore;
-import edu.uiuc.ncsa.security.delegation.server.storage.impl.ClientMemoryStore;
 import edu.uiuc.ncsa.security.delegation.storage.Client;
 import edu.uiuc.ncsa.security.delegation.storage.TransactionStore;
-import edu.uiuc.ncsa.security.delegation.storage.impl.ClientConverter;
 import edu.uiuc.ncsa.security.delegation.storage.impl.TransactionMemoryStore;
 import edu.uiuc.ncsa.security.servlet.TrivialUsernameTransformer;
 import edu.uiuc.ncsa.security.servlet.UsernameTransformer;
@@ -51,6 +52,8 @@ public abstract class AbstractConfigurationLoader<T extends ServiceEnvironmentIm
     protected MultiDSClientStoreProvider csp;
     protected MultiDSClientApprovalStoreProvider casp;
     protected MailUtilProvider mup = null;
+    protected MultiDSPermissionStoreProvider mpp;
+    protected MultiDSAdminClientStoreProvider macp;
     protected ServiceEnvironmentImpl.MessagesProvider messagesProvider = null;
 
     boolean getCfgBoolean(ConfigurationNode sn, String tagName, boolean defaultValue) {
@@ -85,7 +88,7 @@ public abstract class AbstractConfigurationLoader<T extends ServiceEnvironmentIm
                     headFieldName = getFirstAttribute(sn, OA4MPConfigTags.AUTHORIZATION_SERVLET_HEADER_FIELD_NAME);
                     returnDnAsUsername = getCfgBoolean(sn, OA4MPConfigTags.AUTHORIZATION_SERVLET_RETURN_DN_AS_USERNAME, returnDnAsUsername);
                     showLogon = getCfgBoolean(sn, OA4MPConfigTags.AUTHORIZATION_SERVLET_SHOW_LOGON, showLogon);
-                    verifyUsername = getCfgBoolean(sn, OA4MPConfigTags.AUTHORIZATION_SERVLET_VERIFY_USERNAME,verifyUsername);
+                    verifyUsername = getCfgBoolean(sn, OA4MPConfigTags.AUTHORIZATION_SERVLET_VERIFY_USERNAME, verifyUsername);
                     convertDNToGlobusID = getCfgBoolean(sn, OA4MPConfigTags.CONVERT_DN_TO_GLOBUS_ID, convertDNToGlobusID);
                 } catch (Throwable t) {
                     info("Error loading authorization configuration. Disabling use of headers");
@@ -180,12 +183,12 @@ public abstract class AbstractConfigurationLoader<T extends ServiceEnvironmentIm
                     getTokenForgeProvider(),
                     tc));
             storeProvider.addListener(new DSSQLTransactionStoreProvider(cn,
-                               getMariaDBConnectionPoolProvider(),
-                               OA4MPConfigTags.MARIADB_STORE,
-                               getCSP(),
-                               tp,
-                               getTokenForgeProvider(),
-                               tc));
+                    getMariaDBConnectionPoolProvider(),
+                    OA4MPConfigTags.MARIADB_STORE,
+                    getCSP(),
+                    tp,
+                    getTokenForgeProvider(),
+                    tc));
             storeProvider.addListener(new DSSQLTransactionStoreProvider(cn,
                     getPgConnectionPoolProvider(),
                     OA4MPConfigTags.POSTGRESQL_STORE,
@@ -215,40 +218,34 @@ public abstract class AbstractConfigurationLoader<T extends ServiceEnvironmentIm
     }
 
 
-    protected MultiDSClientStoreProvider getCSP() {
-        if (csp == null) {
-            ClientConverter converter = new ClientConverter(getClientProvider());
-            csp = new MultiDSClientStoreProvider(cn, isDefaultStoreDisabled(), loggerProvider.get(), null, null, getClientProvider());
+    protected abstract MultiDSClientStoreProvider getCSP();
 
-            csp.addListener(new DSFSClientStoreProvider(cn, converter, getClientProvider()));
-            csp.addListener(new DSClientSQLStoreProvider(getMySQLConnectionPoolProvider(),
-                    OA4MPConfigTags.MYSQL_STORE,
-                    converter, getClientProvider()));
-            csp.addListener(new DSClientSQLStoreProvider(getMariaDBConnectionPoolProvider(),
-                               OA4MPConfigTags.MARIADB_STORE,
-                               converter, getClientProvider()));
-            csp.addListener(new DSClientSQLStoreProvider(getPgConnectionPoolProvider(),
-                    OA4MPConfigTags.POSTGRESQL_STORE,
-                    converter, getClientProvider()));
-            csp.addListener(new TypedProvider<ClientStore>(cn, OA4MPConfigTags.MEMORY_STORE, OA4MPConfigTags.CLIENTS_STORE) {
-
-                @Override
-                public Object componentFound(CfgEvent configurationEvent) {
-                    if (checkEvent(configurationEvent)) {
-                        return get();
-                    }
-                    return null;
-                }
-
-                @Override
-                public ClientStore get() {
-                    return new ClientMemoryStore(getClientProvider());
-                }
-            });
+    protected MultiDSAdminClientStoreProvider getMacp(){
+        if(macp == null){
+              macp = new MultiDSAdminClientStoreProvider(cn, isDefaultStoreDisabled(), loggerProvider.get(),null, null,
+                      AdminClientStoreProviders.getAdminClientProvider());
+            macp.addListener(AdminClientStoreProviders.getACMP(cn));
+            macp.addListener(AdminClientStoreProviders.getACFSP(cn));
+            macp.addListener(AdminClientStoreProviders.getMariaACS(cn, getMariaDBConnectionPoolProvider()));
+            macp.addListener(AdminClientStoreProviders.getMysqlACS(cn, getMySQLConnectionPoolProvider()));
+            macp.addListener(AdminClientStoreProviders.getPostgresACS(cn, getPgConnectionPoolProvider()));
+            AdminClientStore acs = (AdminClientStore) macp.get();
+            System.err.println("Got admin client store" + acs.getClass().getSimpleName());
         }
-        return csp;
+        return macp;
     }
-
+    protected MultiDSPermissionStoreProvider getMpp() {
+        if (mpp == null) {
+            mpp = new MultiDSPermissionStoreProvider(cn, isDefaultStoreDisabled(), loggerProvider.get(),
+                    null, null, PermissionStoreProviders.getPermissionProvider());
+            mpp.addListener(PermissionStoreProviders.getM(cn));
+            mpp.addListener(PermissionStoreProviders.getFSP(cn));
+            mpp.addListener(PermissionStoreProviders.getMariaPS(cn, getMariaDBConnectionPoolProvider()));
+            mpp.addListener(PermissionStoreProviders.getPostgresPS(cn, getPgConnectionPoolProvider()));
+            mpp.addListener(PermissionStoreProviders.getMysqlPS(cn, getMySQLConnectionPoolProvider()));
+        }
+        return mpp;
+    }
 
     protected MultiDSClientApprovalStoreProvider getCASP() {
         if (casp == null) {
@@ -319,28 +316,31 @@ public abstract class AbstractConfigurationLoader<T extends ServiceEnvironmentIm
                 getConstants(),
                 getAuthorizationServletConfig(),
                 getUsernameTransformer(),
-                getPingable());
+                getPingable(),
+                getMpp(),
+                getMacp());
     }
 
-    protected boolean getPingable(){
+    protected boolean getPingable() {
         boolean isPingable = true; //default
         try {
             String y = Configurations.getFirstAttribute(cn, OA4MPConfigTags.PINGABLE);
-            if(y == null || y.length() == 0){
+            if (y == null || y.length() == 0) {
                 // use the default
-            }else {
+            } else {
                 isPingable = Boolean.parseBoolean(y);
             }
-        }catch (Throwable t){
+        } catch (Throwable t) {
             warn("Could not parse " + OA4MPConfigTags.PINGABLE + " property. Using default of " + isPingable);
         }
-        if(isPingable){
+        if (isPingable) {
             info("ping enabled");
-        }else{
+        } else {
             info("ping disabled");
         }
-       return isPingable;
+        return isPingable;
     }
+
     int maxAllowedNewClientRequests = -1;
 
     public int getMaxAllowedNewClientRequests() {
@@ -357,8 +357,6 @@ public abstract class AbstractConfigurationLoader<T extends ServiceEnvironmentIm
         }
         return maxAllowedNewClientRequests;
     }
-
-
 
 
     URI address;

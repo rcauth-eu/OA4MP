@@ -1,7 +1,7 @@
 package edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2ServiceTransaction;
-import edu.uiuc.ncsa.myproxy.oa4mp.server.storage.filestore.DSFSTransactionStore;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.transactions.DSFSTransactionStore;
 import edu.uiuc.ncsa.security.core.IdentifiableProvider;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.delegation.token.RefreshToken;
@@ -56,21 +56,6 @@ public class OA2FSTStore<V extends OA2ServiceTransaction> extends DSFSTransactio
         }
     }
 
-/*
-    @Override
-    public boolean delete(String identifier) {
-        V t = (V) loadByIdentifier(identifier);
-        boolean rc = super.delete(identifier);
-        if (t.hasRefreshToken()) {
-            removeIndexEntry(t.getRefreshToken().getToken());
-        }
-        if (t.getUsername() != null) {
-            removeIndexEntry(t.getUsername());
-        }
-        return rc;
-
-    }
-*/
 
     @Override
     public V getByUsername(String username) {

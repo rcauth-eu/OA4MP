@@ -4,7 +4,8 @@
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-    <title></title>
+    <title>The SSL element configuration</title>
+    <!--#include virtual="../../head.html" -->
 </head>
 <body class="composite">
 <!--#include virtual="../../header.html" -->
@@ -66,6 +67,14 @@
             should probably be enabled (i.e. omitted) unless you have good reasons otherwise.
         </td>
     </tr>
+    <tr>
+         <td style="vertical-align: top;">tlsVersion</td>
+         <td style="vertical-align: top;">N</td>
+         <td style="vertical-align: top;">--</td>
+         <td style="vertical-align: top;">This will allow for setting the version of TLS used in SSL connections.
+         The options are 1.0, 1.1 or 1.2. If this is omitted, then the default for the current version of Java (1.0 for Java 7, 1.2
+         for Java 8) will be used.</td>
+     </tr>
     </tbody>
 </table>
 
