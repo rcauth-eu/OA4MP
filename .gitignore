@@ -1,2 +1,5 @@
 /.settings
 /.project
+
+# Don't include target directories
+target/
