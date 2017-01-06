@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>edu.uiuc.ncsa.myproxy</groupId>
     <artifactId>myproxy</artifactId>
-    <version>4.1.2</version>
+    <version>${revision}</version>
     <packaging>pom</packaging>
     <name>Open Authorization for MyProxy</name>
     <description>Open Authorization (OAuth) client and server code for MyProxy</description>
@@ -22,12 +22,6 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-    <scm>
-        <developerConnection>scm:svn:https://jeff92@svn.code.sf.net/p/cilogon/code/trunk/edu.uiuc.ncsa/myproxy
-        </developerConnection>
-        <connection>scm:svn:https://jeff92@svn.code.sf.net/p/cilogon/code/trunk/edu.uiuc.ncsa/myproxy</connection>
-        <url>scm:svn:https://jeff92@svn.code.sf.net/p/cilogon/code/trunk/edu.uiuc.ncsa/myproxy</url>
-    </scm>
     <developers>
         <developer>
             <name>Jeff Gaynor</name>
@@ -35,6 +29,7 @@
         </developer>
     </developers>
     <properties>
+        <revision>4.1.2-RCauth</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <additionalparam>-Xdoclint:none</additionalparam>
     </properties>
@@ -97,6 +92,21 @@
     </distributionManagement>
     <build>
         <plugins>
+            <!-- make sure jar file's MANIFEST.MF will contain the version -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -117,7 +127,8 @@
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
-                        <phase>verify</phase>
+                        <!--phase>verify</phase-->
+                        <phase>deploy</phase>
                         <goals>
                             <goal>sign</goal>
                         </goals>
@@ -137,10 +148,43 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- update revision properties -->
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>flatten-maven-plugin</artifactId>
+              <version>1.1.0</version>
+              <configuration>
+                <!-- also keep name -->
+                <pomElements><name/></pomElements>
+                <updatePomFile>true</updatePomFile>
+              </configuration>
+              <executions>
+                <execution>
+                  <id>flatten</id>
+                  <phase>process-resources</phase>
+                  <goals>
+                    <goal>flatten</goal>
+                  </goals>
+                </execution>
+                <execution>
+                  <id>flatten.clean</id>
+                  <phase>clean</phase>
+                  <goals>
+                    <goal>clean</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9</version>
+                <version>3.0.1</version>
+                <configuration>
+                    <aggregate>true</aggregate>
+                    <use>false</use>
+                </configuration>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
@@ -149,7 +193,7 @@
                         </goals>
                         <configuration>
                             <!-- Java 8 specific or empty javadoc tags make the build fail -->
-                            <additionalparam>-Xdoclint:none</additionalparam>
+                            <doclint>none</doclint>
                         </configuration>
 
                     </execution>
@@ -163,15 +207,6 @@
                 <version>6.1.26</version>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9</version>
-                <configuration>
-                    <aggregate>true</aggregate>
-                    <use>false</use>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
     <reporting>
@@ -179,8 +214,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9</version>
+                <version>3.0.1</version>
                 <configuration>
+                    <doclint>none</doclint>
                     <aggregate>true</aggregate>
                     <use>false</use>
                 </configuration>

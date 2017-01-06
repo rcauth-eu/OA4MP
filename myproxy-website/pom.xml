@@ -7,9 +7,14 @@
           Do NOT have the parent of this be the top-level project or it will
           prevent javadoc creation.
           -->
+    <parent>
+        <groupId>edu.uiuc.ncsa.myproxy</groupId>
+        <artifactId>myproxy</artifactId>
+        <version>${revision}</version>
+    </parent>
     <groupId>edu.uiuc.ncsa.myproxy</groupId>
     <!-- The version number reflects the currently released project. -->
-    <version>4.1.2</version>
+    <version>${revision}</version>
 
     <artifactId>myproxy-website</artifactId>
     <packaging>jar</packaging>
@@ -77,7 +82,7 @@
         <dependency>
             <groupId>edu.uiuc.ncsa.myproxy</groupId>
             <artifactId>myproxy-logon</artifactId>
-            <version>4.1.2</version>
+            <version>${revision}</version>
         </dependency>
     
     </dependencies>
@@ -139,7 +144,7 @@
                     <dependency>
                         <groupId>edu.uiuc.ncsa.maven.skin</groupId>
                         <artifactId>oa4mp-skin</artifactId>
-                        <version>4.1.2</version>
+                        <version>${revision}</version>
                     </dependency>
                 </dependencies>
             </plugin>
@@ -155,23 +160,6 @@
                         <dependencySourceInclude>edu.uiuc.ncsa:*</dependencySourceInclude>
                     </dependencySourceIncludes>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.6</version>
-                <configuration>
-                    <skip>false</skip>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
