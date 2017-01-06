@@ -7,12 +7,17 @@
           Do NOT have the parent of this be the top-level project or it will
           prevent javadoc creation.
           -->
+    <parent>
+        <groupId>edu.uiuc.ncsa.myproxy</groupId>
+        <artifactId>myproxy</artifactId>
+        <version>${revision}</version>
+    </parent>
     <groupId>edu.uiuc.ncsa.myproxy</groupId>
     <!--
          The version number reflects the currently released project.
          THIS WILL BE DISPLAYED ON THE SITE AS THE CURRENT VERSION NUMBER AT THE TOP OF EACH PAGE!
      -->
-    <version>4.1.1</version>
+    <version>${revision}</version>
 
     <artifactId>oa4mp-website</artifactId>
     <packaging>jar</packaging>
@@ -81,99 +86,92 @@
         <dependency>
             <groupId>edu.uiuc.ncsa.security.delegation</groupId>
             <artifactId>ncsa-security-delegation-client</artifactId>
-            <version>4.1.1</version>
+            <version>${revision}</version>
         </dependency>
 
         <dependency>
             <groupId>edu.uiuc.ncsa.security.delegation</groupId>
             <artifactId>ncsa-security-delegation-common</artifactId>
-            <version>4.1.1</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>edu.uiuc.ncsa.security</groupId>
             <artifactId>ncsa-security-core</artifactId>
-            <version>4.1.1</version>
+            <version>${revision}</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>edu.uiuc.ncsa.security</groupId>
             <artifactId>ncsa-security-servlet</artifactId>
-            <version>4.1.1</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>edu.uiuc.ncsa.security.delegation</groupId>
             <artifactId>ncsa-security-delegation-server</artifactId>
-            <version>4.1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>edu.uiuc.ncsa.security</groupId>
-            <artifactId>ncsa-security-core</artifactId>
-            <version>4.1.1</version>
-            <type>test-jar</type>
-            <scope>test</scope>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>edu.uiuc.ncsa.security.delegation</groupId>
             <artifactId>ncsa-security-delegation-common</artifactId>
-            <version>4.1.1</version>
+            <version>${revision}</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>edu.uiuc.ncsa.security</groupId>
             <artifactId>ncsa-security-util</artifactId>
-            <version>4.1.1</version>
+            <version>${revision}</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>edu.uiuc.ncsa.myproxy</groupId>
             <artifactId>myproxy-logon</artifactId>
-            <version>4.1.1</version>
+            <version>${revision}</version>
         </dependency>
 
         <dependency>
             <groupId>edu.uiuc.ncsa.myproxy</groupId>
             <artifactId>oa4mp-client-api</artifactId>
-            <version>4.1.1</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>edu.uiuc.ncsa.myproxy</groupId>
             <artifactId>oa4mp-client-loader-oauth1</artifactId>
-            <version>4.1.1</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>edu.uiuc.ncsa.myproxy</groupId>
             <artifactId>oa4mp-client-loader-oauth2</artifactId>
-            <version>4.1.1</version>
+            <version>${revision}</version>
         </dependency>
 
         <dependency>
             <groupId>edu.uiuc.ncsa.myproxy</groupId>
             <artifactId>oa4mp-server-api</artifactId>
-            <version>4.1.1</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>edu.uiuc.ncsa.myproxy</groupId>
             <artifactId>oa4mp-server-loader-oauth1</artifactId>
-            <version>4.1.1</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>edu.uiuc.ncsa.myproxy</groupId>
             <artifactId>oa4mp-server-loader-oauth2</artifactId>
-            <version>4.1.1</version>
+            <version>${revision}</version>
         </dependency>
 
         <dependency>
             <groupId>edu.uiuc.ncsa.security.delegation</groupId>
             <artifactId>ncsa-security-oauth-1.0a</artifactId>
-            <version>4.1.1</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <groupId>edu.uiuc.ncsa.security.delegation</groupId>
             <artifactId>ncsa-security-oauth-2.0</artifactId>
-            <version>4.1.1</version>
+            <version>${revision}</version>
         </dependency>
 
     </dependencies>
@@ -236,7 +234,7 @@
                     <dependency>
                         <groupId>edu.uiuc.ncsa.maven.skin</groupId>
                         <artifactId>oa4mp-skin</artifactId>
-                        <version>4.1.1</version>
+                        <version>${revision}</version>
                     </dependency>
                 </dependencies>
             </plugin>
@@ -253,6 +251,7 @@
                     </dependencySourceIncludes>
                 </configuration>
             </plugin>
+            <!--
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
@@ -270,6 +269,7 @@
                     </execution>
                 </executions>
             </plugin>
+            -->
         </plugins>
     </build>
 </project>

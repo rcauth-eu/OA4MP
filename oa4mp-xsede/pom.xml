@@ -3,10 +3,16 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
+    <!--parent>
         <groupId>org.sonatype.oss</groupId>
         <artifactId>oss-parent</artifactId>
+        <relativePath/>
         <version>9</version>
+    </parent-->
+    <parent>
+        <groupId>edu.uiuc.ncsa.myproxy</groupId>
+        <artifactId>myproxy</artifactId>
+        <version>${revision}</version>
     </parent>
     <groupId>edu.uiuc.ncsa.myproxy</groupId>
     <artifactId>oa4mp-xsede</artifactId>
@@ -17,12 +23,12 @@
         <dependency>
             <artifactId>oa4mp-server-loader-oauth1</artifactId>
             <groupId>edu.uiuc.ncsa.myproxy</groupId>
-            <version>4.1.1</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <artifactId>oa4mp-server-api</artifactId>
             <groupId>edu.uiuc.ncsa.myproxy</groupId>
-            <version>4.1.1</version>
+            <version>${revision}</version>
         </dependency>
     </dependencies>
     <build>
@@ -51,6 +57,7 @@
                 <artifactId>maven-jetty-plugin</artifactId>
                 <version>6.1.26</version>
             </plugin>
+            <!--
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
@@ -68,6 +75,7 @@
                     </execution>
                 </executions>
             </plugin>
+            -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>buildnumber-maven-plugin</artifactId>
