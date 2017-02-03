@@ -254,18 +254,14 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         if (!transaction.isAuthGrantValid()) {
             String msg = "Error: Attempt to use invalid authorization code.  Request rejected.";
             warn(msg);
-            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
-		    msg,
-		    HttpStatus.SC_FORBIDDEN);
+            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST, msg, HttpStatus.SC_FORBIDDEN);
         }
 
 	String redirect_uri = atResponse.getParameters().get(OA2Constants.REDIRECT_URI);
 	if (redirect_uri == null || redirect_uri.isEmpty()) {
 	    String msg = "Error: missing "+OA2Constants.REDIRECT_URI+" parameter in request";
 	    warn(msg);
-	    throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
-		    msg,
-		    HttpStatus.SC_BAD_REQUEST);
+	    throw new OA2ATException(OA2Errors.INVALID_REQUEST, msg);
 	}
         URI uri = URI.create(redirect_uri);
 
