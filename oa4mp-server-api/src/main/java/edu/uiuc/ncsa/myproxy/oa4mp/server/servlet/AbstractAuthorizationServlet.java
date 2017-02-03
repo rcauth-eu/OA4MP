@@ -306,9 +306,11 @@ public abstract class AbstractAuthorizationServlet extends CRServlet implements 
         setupMPConnection(trans, userName, password);
         // Change is to close this connection after verifying it works.
         doRealCertRequest(trans, statusString); // Oauth 1 will get the cert, OAuth 2 will do nothing here, getting the cert later.
-        if (hasMPConnection(trans.getIdentifier())) {
-            getMPConnection(trans.getIdentifier()).close();
-        }
+// No longer needed: is done by implementation OA2AuthorizationServer.java in
+// setupMPConnection()
+//        if (hasMPConnection(trans.getIdentifier())) {
+//            getMPConnection(trans.getIdentifier()).close();
+//        }
 
         debug("4.a. verifier = " + trans.getVerifier() + ", " + statusString);
         String cb = createCallback(trans, getFirstParameters(request));
