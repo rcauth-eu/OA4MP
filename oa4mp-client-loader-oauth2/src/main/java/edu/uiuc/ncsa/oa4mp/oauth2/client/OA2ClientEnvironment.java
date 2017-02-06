@@ -68,7 +68,8 @@ public class OA2ClientEnvironment extends ClientEnvironment {
                                 String redirectPagePath,
                                 String successPagePath,
                                 String secret,
-                                Collection<String> scopes) {
+                                Collection<String> scopes,
+                                String wellKnownURI) {
         super(logger,
                 constants,
                 accessTokenUri,
@@ -96,12 +97,19 @@ public class OA2ClientEnvironment extends ClientEnvironment {
         this.requestProxies = requestProxies;
         this.secret = secret;
         this.scopes = scopes;
+        this.wellKnownURI = wellKnownURI;
     }
     Collection<String> scopes = null;
     public Collection<String> getScopes(){
         return scopes;
     }
     String secret;
+
+    public String getWellKnownURI() {
+        return wellKnownURI;
+    }
+
+    String wellKnownURI = null;
     @Override
     public Client getClient() {
         if (client == null) {

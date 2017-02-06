@@ -88,7 +88,8 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
                     getRedirectPagePath(),
                     getSuccessPagePath(),
                     getSecret(),
-                    getScopes()
+                    getScopes(),
+                    getWellKnownURI()
             );
         } catch (Throwable e) {
             throw new GeneralException("Unable to create client environment", e);
@@ -104,6 +105,14 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
         return assetProvider;
     }
 
+    String wellKnownURI = null;
+    public String getWellKnownURI(){
+        if(wellKnownURI == null){
+             wellKnownURI = getCfgValue("wellKnownUri");
+        }
+        return wellKnownURI;
+
+    }
     @Override
     protected Provider<AssetStore> getAssetStoreProvider() {
         if (assetStoreProvider == null) {
@@ -205,7 +214,7 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
 	                @Override
 	                public DelegationService get() {
 	                    return new DS2(new AGServer2(createServiceClient(getAuthzURI())), // as per spec, request for AG comes through authz endpoint.
-	                            new ATServer2(createServiceClient(getAccessTokenURI())),
+	                            new ATServer2(createServiceClient(getAccessTokenURI()), getWellKnownURI()),
 	                            new PPServer2(createServiceClient(getProxyAssetURI())),
 	                            new UIServer2(createServiceClient(getUIURI())),
 	                            new RTServer2(createServiceClient(getAccessTokenURI())) // as per spec, refresh token server is at same endpoint as access token server.
@@ -219,7 +228,7 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
 	                @Override
 	                public DelegationService get() {
 	                    return new DS2(new AGServer2(createServiceClient(getAuthzURI())), // as per spec, request for AG comes through authz endpoint.
-	                            new ATServer2(createServiceClient(getAccessTokenURI())),
+	                            new ATServer2(createServiceClient(getAccessTokenURI()), getWellKnownURI()),
 	                            new PAServer2(createServiceClient(getAssetURI())),
 	                            new UIServer2(createServiceClient(getUIURI())),
 	                            new RTServer2(createServiceClient(getAccessTokenURI())) // as per spec, refresh token server is at same endpoint as access token server.
