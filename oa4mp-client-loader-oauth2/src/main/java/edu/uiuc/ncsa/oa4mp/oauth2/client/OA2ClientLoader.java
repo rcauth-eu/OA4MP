@@ -113,6 +113,8 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
         if(!wellKnownURIparsed){
             wellKnownURIparsed=true;
             wellKnownURI = getCfgValue("wellKnownUri");
+            if (wellKnownURI == null)
+                myLogger.warn("No wellKnownURI is defined, can NOT verify ID tokens");
         }
         return wellKnownURI;
 
