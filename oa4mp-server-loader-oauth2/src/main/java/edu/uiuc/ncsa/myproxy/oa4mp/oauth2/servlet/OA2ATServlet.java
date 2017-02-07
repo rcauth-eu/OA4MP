@@ -440,7 +440,13 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         //      atResponse.setClaimSources(setupClaimSources(transaction, oa2SE));
 
         atResponse.setServiceTransaction(transaction);
-        atResponse.setJsonWebKey(oa2SE.getJsonWebKeys().getDefault());
+        // In case we have no JSON WebKey configured, we should not crash but
+        // ignore them.
+        try {
+            atResponse.setJsonWebKey(oa2SE.getJsonWebKeys().getDefault());
+        } catch (IllegalStateException e)   {
+            warn(e.getMessage());
+        }
         atResponse.setClaims(transaction.getClaims());
         // Need to do some checking but for now, just return transaction
         //return null;
