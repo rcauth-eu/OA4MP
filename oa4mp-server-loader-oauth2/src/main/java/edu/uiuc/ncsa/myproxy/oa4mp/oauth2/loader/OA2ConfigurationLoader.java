@@ -220,11 +220,16 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
         JSONWebKeys keys = null;
         try {
             if (json != null) {
+                info("Getting JSON WebKeys from config file");
                 keys = JSONWebKeyUtil.fromJSON(json);
-            }
-            String path = getNodeValue(node, "path", null); // points to a file that contains it all
-            if (path != null) {
-                keys = JSONWebKeyUtil.fromJSON(new File(path));
+            } else {
+                String path = getNodeValue(node, "path", null); // points to a file that contains it all
+                if (path != null) {
+                    info("Getting JSON WebKeys from "+path);
+                    keys = JSONWebKeyUtil.fromJSON(new File(path));
+                } else {
+                    warn("No source for JSON WebKeys found");
+                }
             }
         } catch (Throwable t) {
             throw new GeneralException("Error reading signing keys", t);
@@ -233,7 +238,12 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
         if (keys == null) {
             throw new IllegalStateException("Error: Could not load signing keys");
         }
-        keys.setDefaultKeyID(getFirstAttribute(node, "defaultKeyID"));
+        String defaultKeyID = getFirstAttribute(node, "defaultKeyID");
+        if (defaultKeyID == null)   {
+            throw new IllegalStateException("JSONWebKey node is missing required defaultKeyID attribute");
+        }
+        info("Using defaultKeyID = "+defaultKeyID);
+        keys.setDefaultKeyID(defaultKeyID);
         return keys;
     }
 
@@ -462,7 +472,6 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
             }
             claimSource.setScopes(getScopes());
             DebugUtil.dbg(this, "   Actual scope handler = " + claimSource.getClass().getSimpleName());
-
         }
         return claimSource;
     }
