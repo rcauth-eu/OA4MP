@@ -295,7 +295,13 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         atResponse.setScopeHandlers(scopeHandlers); // so the same scopes in user info are returned here.
 
         atResponse.setServiceTransaction(transaction);
-        atResponse.setJsonWebKey(oa2SE.getJsonWebKeys().getDefault());
+	// In case we have no JSON WebKey configured, we should not crash but
+	// ignore them.
+	try {
+	    atResponse.setJsonWebKey(oa2SE.getJsonWebKeys().getDefault());
+	} catch (IllegalStateException e)   {
+	    warn(e.getMessage());
+	}
         // Need to do some checking but for now, just return transaction
         //return null;
         return transaction;
