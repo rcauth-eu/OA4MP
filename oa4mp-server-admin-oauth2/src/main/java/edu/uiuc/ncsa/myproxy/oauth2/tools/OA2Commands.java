@@ -126,4 +126,12 @@ public class OA2Commands extends BaseCommands {
 
         return false;
     }
+
+    @Override
+    public void useHelp() {
+	super.useHelp();
+	say("\nIn addition, the following components are supported");
+	say(ADMINS + " - administrative commands");
+	say(SIGNING + " - help creating signing keys\n");
+    }
 }
