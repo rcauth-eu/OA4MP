@@ -64,8 +64,21 @@ public class DiscoveryServlet extends MyProxyDelegationServlet {
         //JSPUtil.fwd(httpServletRequest, httpServletResponse, getDiscoveryPagePath());
     }
     protected static String getRequestURI(HttpServletRequest request, boolean includePort) {
-        String requestURI = request.getScheme() + "://" + request.getServerName() + (includePort?(":" + request.getServerPort()):"")  + request.getRequestURI();
+//        String requestURI = request.getScheme() + "://" + request.getServerName() + (includePort?(":" + request.getServerPort()):"")  + request.getRequestURI();
         //  String requestURI = request.getRequestURI();
+	int port=request.getServerPort();
+	String scheme=request.getScheme();
+	String requestURI;
+	// Don't add port when we use a default port
+	if ( (includePort==false) ||
+	     (scheme.equals("https") && port==443) ||
+	     (scheme.equals("http")  && port==80) )
+	{
+	    requestURI =   scheme + "://" + request.getServerName() + request.getRequestURI();
+	} else {
+	    requestURI =   scheme + "://" + request.getServerName() + ":" + port + request.getRequestURI();
+	}
+
         if (requestURI.endsWith("/")) {
             requestURI = requestURI.substring(0, requestURI.length() - 1);
         }
