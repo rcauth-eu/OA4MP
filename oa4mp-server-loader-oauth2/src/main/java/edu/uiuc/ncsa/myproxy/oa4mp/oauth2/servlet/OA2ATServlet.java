@@ -89,7 +89,8 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
                 throw new NFWException("Error: no service address was found in the configuration.");
             }
             issuer = getServiceEnvironment().getServiceAddress().toString();
-            issuer = issuer.substring(0, issuer.lastIndexOf("/"));
+// Do not strip of the path, that goes against the OpenID connect spec
+//            issuer = issuer.substring(0, issuer.lastIndexOf("/"));
             // This is to be the server only, without the path. In the service tag, the complete
             // address + path is given.
         }

@@ -54,10 +54,14 @@ public class OA2DiscoveryServlet extends DiscoveryServlet {
 
         JSONObject json = super.setValues(request, jsonObject);
         json.put("jwks_uri", requestURI + "/certs");
+	// use service name, see e.g.
+	// https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationRequest
         if(oa2SE.getServiceAddress()!=null) {
-            json.put(ISSUER, oa2SE.getServiceAddress().getScheme() + "://" + oa2SE.getServiceAddress().getHost());
+//	    json.put(ISSUER, oa2SE.getServiceAddress().getScheme() + "://" + oa2SE.getServiceAddress().getHost());
+	    json.put(ISSUER, oa2SE.getServiceAddress().toString());
         }else{
-            json.put(ISSUER, request.getScheme() + "://" + request.getServerName()); // default -- use server host name
+//            json.put(ISSUER, request.getScheme() + "://" + request.getServerName()); // default -- use server host name
+            json.put(ISSUER, requestURI);
         }
         json.put(TOKEN_ENDPOINT, requestURI + "/token");
         json.put(USERINFO_ENDPOINT, requestURI + "/userinfo");
