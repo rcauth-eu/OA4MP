@@ -64,12 +64,34 @@ public class DiscoveryServlet extends MyProxyDelegationServlet {
         //JSPUtil.fwd(httpServletRequest, httpServletResponse, getDiscoveryPagePath());
     }
     protected static String getRequestURI(HttpServletRequest request, boolean includePort) {
-        String requestURI = request.getScheme() + "://" + request.getServerName() + (includePort?(":" + request.getServerPort()):"")  + request.getRequestURI();
-        //  String requestURI = request.getRequestURI();
+        int port=request.getServerPort();
+        String scheme=request.getScheme();
+        String requestURI;
+        // Don't add port when we use a default port
+        if ( (includePort==false) ||
+             (scheme.equals("https") && port==443) ||
+             (scheme.equals("http")  && port==80) )
+        {
+            requestURI =   scheme + "://" + request.getServerName() + request.getRequestURI();
+        } else {
+            requestURI =   scheme + "://" + request.getServerName() + ":" + port + request.getRequestURI();
+        }
+        // TODO: check logic
+        // Strip off request.getServletPath() from requestURI
+        String servName=request.getServletPath();
+        if (servName.length()>0 && requestURI.endsWith(servName)) {
+            requestURI = requestURI.substring(0, requestURI.length()-servName.length());
+        }
+        // Also need to strip off trailing /
         if (requestURI.endsWith("/")) {
             requestURI = requestURI.substring(0, requestURI.length() - 1);
         }
-        if (0 < requestURI.indexOf("/.well-known")) {
+        if (0 < requestURI.indexOf("/token")) {
+            // Strip off /token which is end of the requestURI for getting claims
+            requestURI = requestURI.substring(0, requestURI.indexOf("/token"));
+        } else if (0 < requestURI.indexOf("/.well-known")) {
+            // Strip off /.well-known which is end of the requestURI for
+            // .well-known lookups
             requestURI = requestURI.substring(0, requestURI.indexOf("/.well-known"));
         }
         return requestURI;
