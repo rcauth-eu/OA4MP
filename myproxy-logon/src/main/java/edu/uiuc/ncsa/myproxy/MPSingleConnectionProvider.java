@@ -122,7 +122,7 @@ public class MPSingleConnectionProvider<T extends MyProxyConnectable> implements
                     // don't reset the connection, instead just close it. 
                 	// myProxyLogon.logon() will open in on demand anyway
                 	myProxyLogon.setVoname(voname);
-                    if (myProxyLogon.isLoggedOn()) {
+                    if (myProxyLogon.isConnected()) {
                         close();
                     }
                 }
@@ -136,7 +136,7 @@ public class MPSingleConnectionProvider<T extends MyProxyConnectable> implements
                     // don't reset the connection, instead just close it. 
                 	// myProxyLogon.logon() will open in on demand anyway
                     myProxyLogon.setVomses(vomses);
-                    if (myProxyLogon.isLoggedOn()) {
+                    if (myProxyLogon.isConnected()) {
                         close();
                     }
                 }
