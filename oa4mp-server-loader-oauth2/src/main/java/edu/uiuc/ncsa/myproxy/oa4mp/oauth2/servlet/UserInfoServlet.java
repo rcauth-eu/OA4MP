@@ -3,6 +3,7 @@ package edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2SE;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.MyProxyDelegationServlet;
 import edu.uiuc.ncsa.security.core.exceptions.InvalidTimestampException;
+import edu.uiuc.ncsa.security.core.util.DebugUtil;
 import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
 import edu.uiuc.ncsa.security.delegation.server.request.IssuerResponse;
 import edu.uiuc.ncsa.security.delegation.token.AccessToken;
@@ -13,6 +14,7 @@ import edu.uiuc.ncsa.security.oauth_2_0.server.ScopeHandler;
 import edu.uiuc.ncsa.security.oauth_2_0.server.UII2;
 import edu.uiuc.ncsa.security.oauth_2_0.server.UIIRequest2;
 import edu.uiuc.ncsa.security.oauth_2_0.server.UIIResponse2;
+import edu.uiuc.ncsa.security.servlet.ServletDebugUtil;
 import org.apache.http.HttpStatus;
 
 import javax.servlet.http.HttpServletRequest;
@@ -34,13 +36,13 @@ public class UserInfoServlet extends MyProxyDelegationServlet {
         // Bearer oa4mp:...
 
         AccessToken at = null;
-        OA2SE oa2SE = (OA2SE)getServiceEnvironment();
+        OA2SE oa2SE = (OA2SE) getServiceEnvironment();
         List<String> authHeaders = getAuthHeader(request, "Bearer");
 
-        if(authHeaders.isEmpty()){
+        if (authHeaders.isEmpty()) {
             // it's not in a header, but was sent as a standard parameter.
             at = oa2SE.getTokenForge().getAccessToken(request);
-        }else {
+        } else {
             // only the very first one is taken. Don't try to snoop for them.
             at = oa2SE.getTokenForge().getAccessToken(authHeaders.get(0));
         }
@@ -61,7 +63,7 @@ public class UserInfoServlet extends MyProxyDelegationServlet {
         }
         try {
             checkTimestamp(at.getToken());
-        }catch(InvalidTimestampException itx){
+        } catch (InvalidTimestampException itx) {
             throw new OA2GeneralError(OA2Errors.INVALID_REQUEST, "token expired.", HttpStatus.SC_BAD_REQUEST);
         }
         UII2 uis = new UII2(oa2SE.getTokenForge(), getServiceEnvironment().getServiceAddress());
@@ -70,10 +72,13 @@ public class UserInfoServlet extends MyProxyDelegationServlet {
         // Now we figure out which scope handler to use.
         OA2Client oa2Client = (OA2Client) transaction.getClient();
         UIIResponse2 uiresp = (UIIResponse2) uis.process(uireq);
-        //uiresp.getUserInfo().put("email","gaynor@illinois.edu");
-
-        LinkedList<ScopeHandler> scopeHandlers = LDAPScopeHandlerFactory.createScopeHandlers(oa2SE,oa2Client);
-        for(ScopeHandler scopeHandler: scopeHandlers){
+        // FIXME!! REMOVE THE FOLLOWING AT SOME POINT
+        DebugUtil.dbg(this, "REMOVE EPPN from claims");
+        if(ServletDebugUtil.isEnabled()){
+            uiresp.getUserInfo().put("email", "gaynor@illinois.edu");
+        }
+        LinkedList<ScopeHandler> scopeHandlers = LDAPScopeHandlerFactory.createScopeHandlers(oa2SE, oa2Client);
+        for (ScopeHandler scopeHandler : scopeHandlers) {
             scopeHandler.process(uiresp.getUserInfo(), transaction);
         }
         uiresp.write(response);
@@ -81,6 +86,7 @@ public class UserInfoServlet extends MyProxyDelegationServlet {
 
     /**
      * Override this if needed.
+     *
      * @param transaction
      * @return
      */

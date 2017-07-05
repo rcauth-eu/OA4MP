@@ -6,10 +6,7 @@ import edu.uiuc.ncsa.myproxy.oa4mp.server.MyProxyServiceEnvironment;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.ServiceEnvironment;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.ServiceEnvironmentImpl;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.util.AbstractCLIApprover;
-import edu.uiuc.ncsa.myproxy.oa4mp.server.util.ExceptionEventNotifier;
-import edu.uiuc.ncsa.myproxy.oa4mp.server.util.NewClientNotifier;
 import edu.uiuc.ncsa.security.core.Identifier;
-import edu.uiuc.ncsa.security.core.Store;
 import edu.uiuc.ncsa.security.core.cache.Cache;
 import edu.uiuc.ncsa.security.core.cache.CachedObject;
 import edu.uiuc.ncsa.security.core.cache.Cleanup;
@@ -28,13 +25,9 @@ import edu.uiuc.ncsa.security.delegation.storage.TransactionStore;
 import edu.uiuc.ncsa.security.delegation.storage.impl.BasicTransaction;
 import edu.uiuc.ncsa.security.delegation.token.AuthorizationGrant;
 import edu.uiuc.ncsa.security.servlet.NotificationListener;
-import edu.uiuc.ncsa.security.storage.sql.SQLStore;
-import edu.uiuc.ncsa.security.util.mail.MailUtil;
 import edu.uiuc.ncsa.security.util.pkcs.KeyPairPopulationThread;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
@@ -123,9 +116,8 @@ public abstract class MyProxyDelegationServlet extends EnvServlet implements Tra
         return ((MyProxyServiceEnvironment) getEnvironment()).getMyProxyServices();
     }
 
-    static boolean notifiersSet = false;
 
-    String getTemplate(File filename) throws IOException {
+  /*  String getTemplate(File filename) throws IOException {
 
         String body = "";
         try {
@@ -143,6 +135,8 @@ public abstract class MyProxyDelegationServlet extends EnvServlet implements Tra
 
         return body;
     }
+    static boolean notifiersSet = false;
+
 
     public void setupNotifiers() throws IOException {
         // do this once or you will have a message sent for each listener!
@@ -176,30 +170,27 @@ public abstract class MyProxyDelegationServlet extends EnvServlet implements Tra
         ExceptionEventNotifier exceptionNotifier = new ExceptionEventNotifier(x, getMyLogger());
         addNotificationListener(exceptionNotifier);
         notifiersSet = true;
-    }
+    }*/
 
-    /**
-     * This will be invoked at init before anything else and should include code to seamlessly upgrade stores from earlier versions.
-     * For instance, if a new column needs to be added to a table. This pre-supposes that the current user has the correct
-     * permissions to alter the table, btw. This also updates the internal flag {@link #storeUpdatesDone} which should be
-     * checks in overrides. If you override this method and call super, let super manage this flag. If it is true, do not
-     * execute your method.
-     */
     public void storeUpdates() throws IOException, SQLException {
         if (storeUpdatesDone) return; // run this once
         storeUpdatesDone = true;
+        realStoreUpdates();
+    }
+
+    /**
+     * If you have store updates that need to get done, put them in this method,
+     * invoking super. Calls to this are managed by the servlet to make sure
+     * nothing get called more than once.
+     * @throws IOException
+     * @throws SQLException
+     */
+    protected void realStoreUpdates() throws IOException, SQLException{
         processStoreCheck(getTransactionStore());
         processStoreCheck(getServiceEnvironment().getClientStore());
         processStoreCheck(getServiceEnvironment().getClientApprovalStore());
-    }
 
-    public void processStoreCheck(Store store) throws SQLException {
-        if (store instanceof SQLStore) {
-            ((SQLStore) store).checkColumns();
-        }
     }
-
-    public static boolean storeUpdatesDone = false;
 
 
     public static AbstractCLIApprover.ClientApprovalThread caThread = null;

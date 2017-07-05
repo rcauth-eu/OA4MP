@@ -1,13 +1,13 @@
 package edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.OA2SE;
+import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.util.DebugUtil;
 import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
 import edu.uiuc.ncsa.security.oauth_2_0.UserInfo;
 import edu.uiuc.ncsa.security.oauth_2_0.server.LDAPConfiguration;
 import edu.uiuc.ncsa.security.oauth_2_0.server.LDAPConfigurationUtil;
-import edu.uiuc.ncsa.security.oauth_2_0.server.OA2Claims;
 import edu.uiuc.ncsa.security.oauth_2_0.server.UnsupportedScopeException;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -19,7 +19,9 @@ import javax.naming.NamingException;
 import javax.naming.directory.*;
 import javax.naming.ldap.LdapContext;
 import javax.servlet.http.HttpServletRequest;
+import java.net.URI;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
@@ -51,37 +53,73 @@ public class LDAPScopeHandler extends BasicScopeHandler {
      * @return
      */
     public String getSearchName(UserInfo userInfo, HttpServletRequest request, ServiceTransaction transaction) {
+        // FIXME!! FOR DEBUGGING ONLY
+        userInfo.getMap().put(getCfg().getSearchNameKey(), "gaynor@illinois.edu");
+        // END debugging hack.
         JSONObject xxx = LDAPConfigurationUtil.toJSON(getCfg());
-        xxx.getJSONObject("ldap").getJSONObject("ssl").put("keystore","");
+        xxx.getJSONObject("ldap").getJSONObject("ssl").put("keystore", "");
         System.err.println(xxx);
-        if(getCfg().getSearchNameKey() == null){
-            throw new IllegalStateException("Error: no search name specified.");
-        }
-        if(getCfg().getSearchNameKey().equals(LDAPConfigurationUtil.SEARCH_NAME_USERNAME)){
+        if (getCfg().getSearchNameKey() == null) {
+            getMyLogger().warn("No search name given for LDAP query. Using default of username");
             return transaction.getUsername();
         }
-        if(!userInfo.getMap().containsKey(getCfg().getSearchNameKey()) || userInfo.getMap().get(getCfg().getSearchNameKey())==null) {
+        if (getCfg().getSearchNameKey().equals(LDAPConfigurationUtil.SEARCH_NAME_USERNAME)) {
+            return transaction.getUsername();
+        }
+        if (!userInfo.getMap().containsKey(getCfg().getSearchNameKey()) || userInfo.getMap().get(getCfg().getSearchNameKey()) == null) {
             throw new IllegalStateException("Error: no recognized search name key was found. Requested was \"" + getCfg().getSearchNameKey() + "\"");
         }
         String searchName = (String) userInfo.getMap().get(getCfg().getSearchNameKey());
+/*
         if(!getCfg().getSearchNameKey().equals(OA2Claims.EMAIL)) {
-            // This is to look in the NCSA's LDAP handler
+            // Use the name on the email address, not the whole email addrress
             searchName = searchName.substring(0, searchName.indexOf("@")); // take the name from the email
         }
-           return searchName;
+*/
+        return searchName;
     }
 
     MyLoggingFacade myLogger = null;
 
-    protected MyLoggingFacade getMyLogger(){
-        if(myLogger == null){
+    protected MyLoggingFacade getMyLogger() {
+        if (myLogger == null) {
             myLogger = getOa2SE().getMyLogger();
         }
         return myLogger;
     }
+
+    public void handleException(Throwable throwable) {
+        if (throwable instanceof CommunicationException) {
+            getMyLogger().warn("Communication exception talking to LDAP.");
+
+            return;
+        }
+        if (getCfg().isFailOnError()) {
+            String subjectTemplate = "Error on ${host} contacting LDAP server";
+            String messageTemplate = "The following error message was received attempting to contact the " +
+                    "LDAP server at ${ldap_host}:\n\n${message}\n\n. The operation did not complete.";
+            Map<String, String> replacements = new HashMap<>();
+            URI address = getOa2SE().getServiceAddress();
+            String x= "localhost";
+            if(address != null){
+                 x = address.getHost();
+            }
+            replacements.put("host", x);
+            replacements.put("ldap_host", getCfg().getServer());
+            replacements.put("message", throwable.getMessage());
+            if (getCfg().isNotifyOnFail()) {
+                getOa2SE().getMailUtil().sendMessage(subjectTemplate, messageTemplate, replacements);
+            }
+            throw new GeneralException("Error: Could not communicate with LDAP server. \"" + throwable.getMessage() + "\"");
+        }
+
+    }
+
     @Override
     synchronized public UserInfo process(UserInfo userInfo, HttpServletRequest request, ServiceTransaction transaction) throws UnsupportedScopeException {
-        if(!getCfg().isEnabled()){ return userInfo;}
+        if (!getCfg().isEnabled()) {
+            return userInfo;
+        }
 
         DebugUtil.dbg(this, "Starting LDAP query");
         DebugUtil.dbg(this, "target host =" + getCfg().getServer());
@@ -90,7 +128,7 @@ public class LDAPScopeHandler extends BasicScopeHandler {
             logon();
         }
         DebugUtil.dbg(this, "   logged on");
-        DebugUtil.dbg(this,"Claims=" + getClaims());
+        DebugUtil.dbg(this, "Claims=" + getClaims());
         try {
             String searchName = getSearchName(userInfo, request, transaction);
             DebugUtil.dbg(this, "  search name=" + searchName);
@@ -101,14 +139,8 @@ public class LDAPScopeHandler extends BasicScopeHandler {
                 getMyLogger().warn("Null search name encountered for LDAP query. No search performed.");
             }
             context.close();
-        } catch (CommunicationException ce) {
-            getMyLogger().warn("Communication exception talking to LDAP.");
-        } catch (Throwable e) {
-            e.printStackTrace();
-            if (getMyLogger().isDebugOn()) {
-                e.printStackTrace();
-            }
-            getMyLogger().error("Error: Could not retrieve information from LDAP. Processing will continue.", e);
+        } catch(Throwable throwable){
+            handleException(throwable);
         } finally {
             closeConnection();
         }
@@ -125,7 +157,7 @@ public class LDAPScopeHandler extends BasicScopeHandler {
     LDAPConfiguration ldapConfiguration = null;
 
     protected LDAPConfiguration getCfg() {
-        if(ldapConfiguration == null) {
+        if (ldapConfiguration == null) {
             ldapConfiguration = getOa2SE().getLdapConfiguration();
         }
         return ldapConfiguration;
@@ -185,7 +217,7 @@ public class LDAPScopeHandler extends BasicScopeHandler {
     @Override
     public Collection<String> getClaims() {
         Collection<String> claims = super.getClaims();
-        for(String key : getCfg().getSearchAttributes().keySet()){
+        for (String key : getCfg().getSearchAttributes().keySet()) {
             LDAPConfigurationUtil.AttributeEntry ae = getCfg().getSearchAttributes().get(key);
             claims.add(ae.targetName);
         }
@@ -196,7 +228,7 @@ public class LDAPScopeHandler extends BasicScopeHandler {
                                       String userID,
                                       Map<String, LDAPConfigurationUtil.AttributeEntry> attributes) throws NamingException {
         if (ctx == null) {
-            throw new IllegalStateException("Error: No LDAP context");
+            throw new IllegalStateException("Error: Could not create the LDAP context");
         }
         DebugUtil.dbg(this, "starting simple LDAP search");
         SearchControls ctls = new SearchControls();
@@ -232,7 +264,7 @@ public class LDAPScopeHandler extends BasicScopeHandler {
             System.out.println(entry.getName());
             for (String attribID : attributes.keySet()) {
                 Attribute attribute = a.get(attribID);
-                DebugUtil.dbg(this,"returned LDAP attribute=" + attribute);
+                DebugUtil.dbg(this, "returned LDAP attribute=" + attribute);
                 if (attribute == null) {
                     continue;
                 }

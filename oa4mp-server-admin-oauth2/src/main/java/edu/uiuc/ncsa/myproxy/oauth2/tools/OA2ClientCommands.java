@@ -9,6 +9,7 @@ import edu.uiuc.ncsa.security.delegation.server.storage.ClientApprovalStore;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2Client;
 import org.apache.commons.codec.digest.DigestUtils;
 
+import java.net.URI;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.StringTokenizer;
@@ -117,10 +118,10 @@ public class OA2ClientCommands extends ClientStoreCommands {
             // so at this point the server actually allows for refresh tokens
             String NONE = "none";
             String rtString = oa2Client.isRTLifetimeEnabled()?Long.toString(oa2Client.getRtLifetime()/1000) : NONE;
-            String rawLifetime = getInput("enter the refresh lifetime in ", rtString);
+            String rawLifetime = getInput("enter the refresh lifetime in ms.", rtString);
 
             if (rawLifetime == null || rawLifetime.length() == 0 || rawLifetime.toLowerCase().equals(NONE)) {
-                oa2Client.setRtLifetime(Long.MIN_VALUE);
+                oa2Client.setRtLifetime(0);
             } else {
                 try {
                     oa2Client.setRtLifetime(Long.parseLong(rawLifetime));
@@ -142,13 +143,24 @@ public class OA2ClientCommands extends ClientStoreCommands {
                 }
             }
         }
-        String uris = getInput("enter a comma separated list of callback uris", currentUris);
+        String uris = getInput("enter a comma separated list of callback uris. These must start with https or they will be ignored.", currentUris);
 
         if (!isEmpty(uris)) {
             LinkedList<String> list = new LinkedList<>();
             StringTokenizer stringTokenizer = new StringTokenizer(uris, ",");
             while (stringTokenizer.hasMoreTokens()) {
-                list.add(stringTokenizer.nextToken().trim());
+                String raw = stringTokenizer.nextToken().trim();
+                try {
+                    URI uri = URI.create(raw);
+                    if (uri.getScheme().toLowerCase().equals("https")) {
+                        list.add(raw);
+                    }else{
+                        sayi("\"" + raw+ "\" rejected -- illegal protocol");
+                    }
+                }catch(Throwable t){
+                    // do nothing. Just ignore illegal uris.
+                    sayi("\"" + raw+ "\" rejected -- illegal uri");
+                }
             }
             oa2Client.setCallbackURIs(list);
         }
