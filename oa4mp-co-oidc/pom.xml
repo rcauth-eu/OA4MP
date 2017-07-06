@@ -26,6 +26,7 @@
               <type>war</type>
               <scope>runtime</scope>
           </dependency>-->
+	<!-- disable absent test
         <dependency>
             <groupId>edu.uiuc.ncsa.myproxy</groupId>
             <artifactId>oa4mp-server-oauth2</artifactId>
@@ -33,6 +34,7 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
+	-->
         <dependency>
             <groupId>edu.uiuc.ncsa.myproxy</groupId>
             <artifactId>oa4mp-server-api</artifactId>
