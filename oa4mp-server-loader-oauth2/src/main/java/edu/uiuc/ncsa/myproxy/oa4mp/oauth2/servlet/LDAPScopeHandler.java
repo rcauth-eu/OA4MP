@@ -54,7 +54,7 @@ public class LDAPScopeHandler extends BasicScopeHandler {
      */
     public String getSearchName(UserInfo userInfo, HttpServletRequest request, ServiceTransaction transaction) {
         // FIXME!! FOR DEBUGGING ONLY
-        userInfo.getMap().put(getCfg().getSearchNameKey(), "gaynor@illinois.edu");
+//        userInfo.getMap().put(getCfg().getSearchNameKey(), "gaynor@illinois.edu");
         // END debugging hack.
         JSONObject xxx = LDAPConfigurationUtil.toJSON(getCfg());
         xxx.getJSONObject("ldap").getJSONObject("ssl").put("keystore", "");

@@ -73,10 +73,10 @@ public class UserInfoServlet extends MyProxyDelegationServlet {
         OA2Client oa2Client = (OA2Client) transaction.getClient();
         UIIResponse2 uiresp = (UIIResponse2) uis.process(uireq);
         // FIXME!! REMOVE THE FOLLOWING AT SOME POINT
-        DebugUtil.dbg(this, "REMOVE EPPN from claims");
-        if(ServletDebugUtil.isEnabled()){
-            uiresp.getUserInfo().put("email", "gaynor@illinois.edu");
-        }
+//        DebugUtil.dbg(this, "REMOVE EPPN from claims");
+//        if(ServletDebugUtil.isEnabled()){
+//            uiresp.getUserInfo().put("email", "gaynor@illinois.edu");
+//        }
         LinkedList<ScopeHandler> scopeHandlers = LDAPScopeHandlerFactory.createScopeHandlers(oa2SE, oa2Client);
         for (ScopeHandler scopeHandler : scopeHandlers) {
             scopeHandler.process(uiresp.getUserInfo(), transaction);
