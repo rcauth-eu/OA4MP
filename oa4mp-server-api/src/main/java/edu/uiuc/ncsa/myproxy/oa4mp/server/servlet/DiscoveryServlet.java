@@ -82,7 +82,12 @@ public class DiscoveryServlet extends MyProxyDelegationServlet {
         if (requestURI.endsWith("/")) {
             requestURI = requestURI.substring(0, requestURI.length() - 1);
         }
-        if (0 < requestURI.indexOf("/.well-known")) {
+        if (0 < requestURI.indexOf("/token")) {
+	    // Strip off /token which is end of the requestURI for getting claims
+            requestURI = requestURI.substring(0, requestURI.indexOf("/token"));
+        } else if (0 < requestURI.indexOf("/.well-known")) {
+	    // Strip off /.well-known which is end of the requestURI for
+	    // .well-known lookups
             requestURI = requestURI.substring(0, requestURI.indexOf("/.well-known"));
         }
         return requestURI;
