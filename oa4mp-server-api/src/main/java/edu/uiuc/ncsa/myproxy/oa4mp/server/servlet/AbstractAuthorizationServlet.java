@@ -305,9 +305,13 @@ public abstract class AbstractAuthorizationServlet extends CRServlet implements 
         String statusString = " transaction =" + trans.getIdentifierString() + " and client=" + trans.getClient().getIdentifierString();
         trans.setVerifier(MyProxyDelegationServlet.getServiceEnvironment().getTokenForge().getVerifier());
         MyProxyDelegationServlet.getServiceEnvironment().getTransactionStore().save(trans);
-        setupMPConnection(trans, userName, password);
-        // Change is to close this connection after verifying it works.
-        doRealCertRequest(trans, statusString); // Oauth 1 will get the cert, OAuth 2 will do nothing here, getting the cert later.
+
+// No need to try out the MyProxy connection here. We will do it later in any
+// case when getting the real certificate. It actually gives a 'read error' on a
+// DS and the MasterPortal does not use this version of the createRedirect().
+//        setupMPConnection(trans, userName, password);
+//        // Change is to close this connection after verifying it works.
+//        doRealCertRequest(trans, statusString); // Oauth 1 will get the cert, OAuth 2 will do nothing here, getting the cert later.
 
         debug("4.a. verifier = " + trans.getVerifier() + ", " + statusString);
         String cb = createCallback(trans, getFirstParameters(request));
