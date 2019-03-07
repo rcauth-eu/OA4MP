@@ -88,7 +88,10 @@ public class BasicClaimsSourceImpl implements ClaimSource {
 
 
     public boolean isEnabled() {
-        return getConfiguration().isEnabled();
+        if (hasConfiguration())
+            return getConfiguration().isEnabled();
+        else
+            return false;
     }
 
     /**
