@@ -32,6 +32,8 @@ public abstract class AbstractRegistrationServlet extends MyProxyDelegationServl
     public static final String CLIENT_ERROR_URL = "clientErrorUrl";
     public static final String CLIENT_EMAIL = "clientEmail";
     public static final String CLIENT_CALLBACK_URI = "callbackURI";
+    // TODO do we need this one in registration?
+//    public static final String CLIENT_SCOPES = "scopes";
     public static final String CLIENT_PROXY_LIMITED = "clientProxyLimited";
     public static final String CLIENT_ACTION_KEY = "action";
     public static final String CLIENT_ACTION_REQUEST_VALUE = "request";
