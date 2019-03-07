@@ -32,7 +32,9 @@ public abstract class AbstractRegistrationServlet extends MyProxyDelegationServl
     public static final String CLIENT_HOME_URL = "clientHomeUrl";
     public static final String CLIENT_ERROR_URL = "clientErrorUrl";
     public static final String CLIENT_EMAIL = "clientEmail";
-    public static final String CLIENT_CALLBACK_URI = "callbackURI";
+    // NOTE: "callbackURI" and "scopes" are used but locally defined in derived class OA2RegistrationServlet
+//    public static final String CLIENT_CALLBACK_URI = "callbackURI";
+//    public static final String CLIENT_SCOPES = "scopes";
     public static final String CLIENT_PROXY_LIMITED = "clientProxyLimited";
     public static final String CLIENT_IS_PUBLIC = "clientIsPublic";
     public static final String CLIENT_ACTION_KEY = "action";
