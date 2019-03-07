@@ -50,8 +50,12 @@ public class OA2DiscoveryServlet extends DiscoveryServlet {
         OA2SE oa2SE = (OA2SE) getServiceEnvironment();
 
         if (oa2SE.getIssuer() != null) {
+            // NOTE: getIssuer() returns the "issuer" attribute set for the service in the cfg.xml
+            // See http://grid.ncsa.illinois.edu/myproxy/oauth/server/dtd/server-dtd-service-tag.xhtml
+            oa2SE.debug("Using issuer from configuration file = "+oa2SE.getIssuer());
             return oa2SE.getIssuer();
         } else {
+            oa2SE.debug("Using issuer from incoming request = "+getRequestURI(request, false));
             return getRequestURI(request, false); // default --  use server + path
         }
     }
