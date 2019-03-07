@@ -107,6 +107,9 @@ public class OA2ClaimsUtil {
         // 3. If the client does not have one, see if there is a server default to use
         // The discovery servlet will try to use the server default or construct the issuer
         if (issuer == null) {
+            // Note: getIssuer tries first oa2SE.getIssuer() but then falls back
+            // to getRequestURI(request, false) which comes from
+            // DiscoveryServlet
             issuer = OA2DiscoveryServlet.getIssuer(request);
         }
         claims.put(OA2Claims.ISSUER, issuer);

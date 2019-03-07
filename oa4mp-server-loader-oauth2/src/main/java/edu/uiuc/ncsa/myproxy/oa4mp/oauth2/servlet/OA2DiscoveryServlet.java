@@ -49,9 +49,12 @@ public class OA2DiscoveryServlet extends DiscoveryServlet {
     public static String getIssuer(HttpServletRequest request) {
         OA2SE oa2SE = (OA2SE) getServiceEnvironment();
 
+        // TODO Do we need to log this?
         if (oa2SE.getIssuer() != null) {
+            oa2SE.info("Using issuer from oa2SE = "+oa2SE.getIssuer());
             return oa2SE.getIssuer();
         } else {
+            oa2SE.info("Using issuer from request = "+getRequestURI(request, false));
             return getRequestURI(request, false); // default --  use server + path
         }
     }
