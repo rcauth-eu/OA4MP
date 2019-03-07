@@ -26,6 +26,8 @@ import static edu.uiuc.ncsa.security.core.util.DateUtils.checkTimestamp;
 import static edu.uiuc.ncsa.security.oauth_2_0.OA2Constants.*;
 import static edu.uiuc.ncsa.security.oauth_2_0.server.claims.OA2Claims.EXPIRATION;
 import static edu.uiuc.ncsa.security.oauth_2_0.server.claims.OA2Claims.ISSUED_AT;
+import static edu.uiuc.ncsa.security.oauth_2_0.server.claims.OA2Claims.AUDIENCE;
+import static edu.uiuc.ncsa.security.oauth_2_0.server.claims.OA2Claims.ISSUER;
 
 /**
  * <p>Created by Jeff Gaynor<br>
@@ -65,6 +67,7 @@ public class UserInfoServlet extends MyProxyDelegationServlet {
         uireq.setUsername(getUsername(transaction));
         UIIResponse2 uiresp = (UIIResponse2) uis.process(uireq);
         // add the claims we have stored.
+        // NOTE: this should NOT include aud and iss
         OA2ClaimsUtil claimsUtil = new OA2ClaimsUtil(oa2SE,transaction );
         transaction.setClaims(claimsUtil.setAccountingInformation(request, transaction.getClaims()));
         getTransactionStore().save(transaction);
@@ -81,7 +84,8 @@ public class UserInfoServlet extends MyProxyDelegationServlet {
     protected JSONObject stripClaims(JSONObject json){
         JSONObject r = new JSONObject();
         r.putAll(json);// new json object so we don't lose information and so we don't get concurrent update error
-        String[] x = new String[]{ISSUED_AT, NONCE,EXPIRATION,EXPIRES_IN,AUTHORIZATION_TIME};
+        // NOTE: need to also strip aud and iss
+        String[] x = new String[]{ISSUED_AT, NONCE,EXPIRATION,EXPIRES_IN,AUTHORIZATION_TIME,ISSUER,AUDIENCE};
         for(String y : x){
             r.remove(y);
         }
