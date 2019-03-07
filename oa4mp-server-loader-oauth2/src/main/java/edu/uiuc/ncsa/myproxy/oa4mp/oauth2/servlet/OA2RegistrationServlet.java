@@ -140,11 +140,12 @@ public class OA2RegistrationServlet extends AbstractRegistrationServlet {
         String x = br.readLine();
         LinkedList<String> uris = new LinkedList<>();
         while (x != null) {
-            if (!x.toLowerCase().startsWith("https:")) {
+            URI uri = URI.create(x);
+            // Only allow non-https for localhost
+            if (!uri.getScheme().toLowerCase().equals("https") && !uri.getHost().toLowerCase().equals("localhost")) {
                 warn("Attempt to add bad callback uri for client " + client.getIdentifierString());
                 throw new ClientRegistrationRetryException("The callback \"" + x + "\" is not secure.", null, client);
             }
-            URI.create(x); // passes here means it is a uri. All we want this to do is throw an exception if needed.
 
             uris.add(x);
             // skip it.

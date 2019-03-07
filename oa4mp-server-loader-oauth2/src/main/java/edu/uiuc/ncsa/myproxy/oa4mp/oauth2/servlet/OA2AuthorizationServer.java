@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.security.GeneralSecurityException;
 import java.util.Date;
@@ -183,7 +184,9 @@ public class OA2AuthorizationServer extends AbstractAuthorizationServlet {
     public String createCallback(ServiceTransaction trans, Map<String, String> params) {
 
         String cb = trans.getCallback().toString();
-        if (!cb.toLowerCase().startsWith("https:")) {
+        URI uri= URI.create(cb);
+        // Only allow non-https for localhost
+        if (!uri.getScheme().toLowerCase().equals("https") && !uri.getHost().toLowerCase().equals("localhost")) {
             throw new GeneralException("Error: Unsupported callback protocol for \"" + cb + "\". Must be https");
         }
         String idStr = trans.getIdentifierString();
@@ -209,6 +212,7 @@ public class OA2AuthorizationServer extends AbstractAuthorizationServlet {
     @Override
     protected void doRealCertRequest(ServiceTransaction trans, String statusString) throws Throwable {
         // do nix here in this protocol.
+
     }
 
 
