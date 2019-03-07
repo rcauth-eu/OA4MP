@@ -50,7 +50,7 @@ public class OA2TConverter<V extends OA2ServiceTransaction> extends TransactionC
         st.setCallback(map.getURI(getTCK().callbackUri()));
         st.setNonce(map.getString(getTCK().nonce()));
         if (map.get(getTCK().scopes()) != null) {
-            net.sf.json.JSONArray json = (JSONArray) JSONSerializer.toJSON(map.get(getTCK().scopes()));
+            JSONArray json = (JSONArray) JSONSerializer.toJSON(map.get(getTCK().scopes()));
             Collection<String> zzz = (Collection<String>) JSONSerializer.toJava(json);
             st.setScopes(zzz);
         }
