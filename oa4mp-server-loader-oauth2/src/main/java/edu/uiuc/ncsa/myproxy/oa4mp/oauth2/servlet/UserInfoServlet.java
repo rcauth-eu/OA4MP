@@ -39,16 +39,18 @@ public class UserInfoServlet extends MyProxyDelegationServlet {
 
         AccessToken at = getAT(request);
         OA2ServiceTransaction transaction = (OA2ServiceTransaction) getTransactionStore().get(at);
-        // check that
+        // First check whether there is a transaction
+        if (transaction == null) {
+            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST, "no transaction for the access token was found.", HttpStatus.SC_BAD_REQUEST);
+        }
+        // check that userinfo is allowed
         if(!transaction.getFlowStates().userInfo){
             throw new OA2GeneralError(OA2Errors.ACCESS_DENIED, "user info access denied", HttpStatus.SC_UNAUTHORIZED);
         }
       /*  if (transaction.getOA2Client().isPublicClient()) {
             throw new OA2GeneralError(OA2Errors.INVALID_REQUEST, "public client not authorized to access user information", HttpStatus.SC_UNAUTHORIZED);
         }*/
-        if (transaction == null) {
-            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST, "no transaction for the access token was found.", HttpStatus.SC_BAD_REQUEST);
-        }
+        // Check the AT is valid
         if (!transaction.isAccessTokenValid()) {
             throw new OA2GeneralError(OA2Errors.INVALID_REQUEST, "invalid access token.", HttpStatus.SC_BAD_REQUEST);
         }
