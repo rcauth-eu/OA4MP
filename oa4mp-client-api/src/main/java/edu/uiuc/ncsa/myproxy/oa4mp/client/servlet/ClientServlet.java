@@ -63,8 +63,10 @@ public abstract class ClientServlet extends AbstractServlet {
 
     @Override
     public void loadEnvironment() throws IOException {
-        environment = getConfigurationLoader().load();
+        // Should not call load() here, getServiceProvider() in OA2ClientLoader also calls load()
+//        environment = getConfigurationLoader().load();
         oa4mpService = ((ClientLoaderInterface) getConfigurationLoader()).getServiceProvider().get();
+        environment = oa4mpService.getEnvironment();
     }
 
 
