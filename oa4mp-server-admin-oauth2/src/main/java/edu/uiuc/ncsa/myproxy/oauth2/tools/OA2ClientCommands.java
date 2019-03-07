@@ -377,7 +377,7 @@ public class OA2ClientCommands extends ClientStoreCommands {
                 }
             }
         }
-        String uris = getInput("enter a comma separated list of callback uris. These must start with https or they will be ignored.", currentUris);
+        String uris = getInput("enter a comma separated list of callback uris. These must start with https (except for localhost) or they will be ignored.", currentUris);
 
         if (!uris.isEmpty()) {
             LinkedList<String> list = new LinkedList<>();
@@ -386,7 +386,8 @@ public class OA2ClientCommands extends ClientStoreCommands {
                 String raw = stringTokenizer.nextToken().trim();
                 try {
                     URI uri = URI.create(raw);
-                    if (uri.getScheme().toLowerCase().equals("https")) {
+                    // Only allow non-https for localhost
+                    if (uri.getScheme().toLowerCase().equals("https") || uri.getHost().toLowerCase().equals("localhost")) {
                         list.add(raw);
                     } else {
                         sayi("\"" + raw + "\" rejected -- illegal protocol");
