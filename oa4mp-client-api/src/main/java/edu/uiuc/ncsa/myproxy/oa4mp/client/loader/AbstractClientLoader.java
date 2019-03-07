@@ -1,5 +1,6 @@
 package edu.uiuc.ncsa.myproxy.oa4mp.client.loader;
 
+import edu.uiuc.ncsa.security.core.util.DebugUtil;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.ClientEnvironment;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.ClientLoaderInterface;
 import edu.uiuc.ncsa.myproxy.oa4mp.client.ClientXMLTags;
@@ -256,6 +257,27 @@ public abstract class AbstractClientLoader<T extends ClientEnvironment> extends 
     public T load() {
         if (loader == null) {
             loader = createInstance();
+        }
+
+        // Copy paste from edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.AbstractConfigurationLoader
+        // Originally did not support setting debug
+        String rawDebug = Configurations.getFirstAttribute(cn, ClientXMLTags.DEBUG);
+        try{
+            if(rawDebug == null || rawDebug.isEmpty()){
+                DebugUtil.setDebugLevel(DebugUtil.DEBUG_LEVEL_OFF);
+            }else {
+                DebugUtil.setDebugLevel(rawDebug);
+            }
+        }catch(Throwable t){
+            // ok, so that didn't work, fall back to the old way
+            DebugUtil.setIsEnabled(Boolean.parseBoolean(rawDebug));
+        }
+        myLogger.setDebugOn(DebugUtil.isEnabled());
+        myLogger.info("Debugging is " + (myLogger.isDebugOn() ? "on" : "off"));
+
+        Boolean doDebug = Boolean.parseBoolean(getCfgValue(ClientXMLTags.DEBUG));
+        if (doDebug)    {
+            DebugUtil.setDebugLevel(DebugUtil.DEBUG_LEVEL_SEVERE); // NOTE: levels are kind of inverted
         }
         return loader;
     }
