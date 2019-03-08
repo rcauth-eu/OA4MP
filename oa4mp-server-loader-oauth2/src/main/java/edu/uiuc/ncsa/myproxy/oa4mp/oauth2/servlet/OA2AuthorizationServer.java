@@ -128,10 +128,13 @@ public class OA2AuthorizationServer extends AbstractAuthorizationServlet {
             // issue now is that the nonce was registered in the init servlet (as it should be for OA1)
             // and now it will be rejected ever more.
             JSONObject j = JSONObject.fromObject(content);
-            String code = j.get("code").toString();
-            String state = j.get("state").toString();
-            request.setAttribute("code", code);
-            request.setAttribute("state", state);
+            // protect against null code and state!!
+            Object code = j.get("code");
+            if (code != null)
+                request.setAttribute("code", code.toString());
+            Object state = j.get("state");
+            if (state != null)
+                request.setAttribute("state", state.toString());
         }
         super.doIt(request, response);
 
