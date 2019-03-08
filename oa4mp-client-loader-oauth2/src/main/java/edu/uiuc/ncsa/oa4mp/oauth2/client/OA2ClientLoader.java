@@ -46,10 +46,12 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
         return new OA2MPServiceProvider(load());
     }
 
+    private boolean scopesParsed=false;
     protected Collection<String> scopes = null;
 
     public Collection<String> getScopes() throws IllegalAccessException, InstantiationException, ClassNotFoundException {
-        if (scopes == null) {
+        if (!scopesParsed) {
+            scopesParsed=true;
             scopes = OA2ConfigurationLoaderUtils.getScopes(cn);
         }
         return scopes;
@@ -100,7 +102,7 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
         }
     }
 
-    AssetProvider assetProvider = null;
+    private AssetProvider assetProvider = null;
 
     @Override
     public AssetProvider getAssetProvider() {
@@ -110,17 +112,19 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
         return assetProvider;
     }
 
-    String wellKnownURI = null;
+    private boolean wellKnownURIparsed = false;
+    private String wellKnownURI = null;
 
     public String getWellKnownURI() {
-        if (wellKnownURI == null) {
+        if (!wellKnownURIparsed) {
+            wellKnownURIparsed=true;
             wellKnownURI = getCfgValue("wellKnownUri");
         }
         return wellKnownURI;
 
     }
 
-    Boolean showIDToken = null;
+    private Boolean showIDToken = null;
 
     public boolean isShowIDToken() {
         if (showIDToken == null) {
@@ -138,7 +142,7 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
         return showIDToken;
     }
 
-    Boolean oidcEnabled = null;
+    private Boolean oidcEnabled = null;
 
     public boolean isOIDCEnabled() {
         if (oidcEnabled == null) {
@@ -153,6 +157,30 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
             }
         }
         return oidcEnabled;
+    }
+
+    private boolean assetURIparsed = false;
+    private URI assetURI = null;
+
+    @Override
+    protected URI getAssetURI(){
+        if(assetURIparsed == false) {
+            assetURIparsed=true;
+            assetURI = super.getAssetURI();
+        }
+        return assetURI;
+    }
+
+    private boolean accessTokenURIparsed = false;
+    private URI accessTokenURI = null;
+
+    @Override
+    protected URI getAccessTokenURI(){
+        if(!accessTokenURIparsed) {
+            accessTokenURIparsed=true;
+            accessTokenURI = super.getAccessTokenURI();
+        }
+        return accessTokenURI;
     }
 
     @Override
@@ -188,24 +216,29 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
         return assetStoreProvider;
     }
 
+    // Note: currently called only once, if changes we probably want to cache
     protected String getErrorPagePath() {
         return getCfgValue(ClientXMLTags.ERROR_PAGE_PATH);
     }
 
+    // Note: currently called only once, if changes we probably want to cache
     protected String getSecret() {
         return getCfgValue(ClientXMLTags.SECRET_KEY);
     }
 
 
+    // Note: currently called only once, if changes we probably want to cache
     protected String getSuccessPagePath() {
         return getCfgValue(ClientXMLTags.SUCCESS_PAGE_PATH);
     }
 
+    // Note: currently called only once, if changes we probably want to cache
     protected String getRedirectPagePath() {
         return getCfgValue(ClientXMLTags.REDIRECT_PAGE_PATH);
     }
 
 
+    // Note: currently called only once, if changes we probably want to cache
     protected boolean isShowRedirectPage() {
         String temp = getCfgValue(ClientXMLTags.SHOW_REDIRECT_PAGE);
         if (temp == null || temp.length() == 0) return false;
@@ -235,6 +268,7 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
         constants.put(CALLBACK_URI_KEY, OA2Constants.REDIRECT_URI);
         constants.put(ClientEnvironment.FORM_ENCODING, OA2Constants.FORM_ENCODING);
         constants.put(ClientEnvironment.TOKEN, OA2Constants.ACCESS_TOKEN);
+        // TODO Something is wrong here, this overwrites the previous entry?!
         constants.put(ClientEnvironment.TOKEN, OA2Constants.AUTHORIZATION_CODE);
         // no verifier in this protocol.
         T t = createInstance(tokenForgeProvider, clientProvider, constants);
@@ -261,10 +295,12 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
         return dsp;
     }
 
+    // Note: currently called only once, if changes we probably want to cache
     protected URI getUIURI() {
         return createServiceURI(getCfgValue(ClientXMLTags.USER_INFO_URI), getCfgValue(ClientXMLTags.BASE_URI), USER_INFO_ENDPOINT);
     }
 
+    // Note: currently called only once, if changes we probably want to cache
     protected URI getAuthzURI() {
         return createServiceURI(getCfgValue(ClientXMLTags.AUTHORIZE_TOKEN_URI), getCfgValue(ClientXMLTags.BASE_URI), AUTHORIZE_ENDPOINT);
     }
