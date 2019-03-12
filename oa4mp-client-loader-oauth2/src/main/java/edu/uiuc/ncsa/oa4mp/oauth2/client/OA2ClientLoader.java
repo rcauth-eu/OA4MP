@@ -117,11 +117,15 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
     Boolean oidcEnabled = null;
     public boolean isOIDCEnabled(){
         if(oidcEnabled == null){
-              try{
-                  oidcEnabled = Boolean.parseBoolean(getCfgValue(ClientXMLTags.OIDC_ENABLED));
-              }catch(Throwable t){
-                 oidcEnabled = Boolean.TRUE; // default
-              }
+            String oidcEnabledValue=getCfgValue(ClientXMLTags.OIDC_ENABLED);
+            if (oidcEnabledValue==null) {
+                oidcEnabled=Boolean.TRUE; // default
+                myLogger.warn("No value for "+ClientXMLTags.OIDC_ENABLED+" is configured, using default \""+oidcEnabled+"\"");
+            } else {
+                // Note: parseBoolean() only knows true, anything else becomes false.
+                oidcEnabled = Boolean.parseBoolean(oidcEnabledValue);
+                myLogger.debug("Value for "+ClientXMLTags.OIDC_ENABLED+" parsed as "+oidcEnabled);
+            }
         }
         return oidcEnabled;
     }
