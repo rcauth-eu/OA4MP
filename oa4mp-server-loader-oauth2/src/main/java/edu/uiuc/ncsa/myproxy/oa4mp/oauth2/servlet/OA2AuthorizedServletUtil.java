@@ -284,67 +284,65 @@ public class OA2AuthorizedServletUtil {
      * @return
      */
     protected Collection<String> resolveScopes(OA2ServiceTransaction st, Map<String, String> params, String state, String givenRedirect) {
+        // scopes passed in via request
         String rawScopes = params.get(SCOPE);
-
-        DebugUtil.trace(this, ".resolveScopes: stored client scopes =" + ((OA2Client) st.getClient()).getScopes());
-        DebugUtil.trace(this, ".resolveScopes: passed in scopes =" + rawScopes);
-        DebugUtil.trace(this, ".resolveScopes: Scope util =" + OA2Scopes.ScopeUtil.getScopes());
-        DebugUtil.trace(this, ".resolveScopes: server scopes=" + ((OA2SE) MyProxyDelegationServlet.getServiceEnvironment()).getScopes());
+        debug("passed in scopes = " + rawScopes);
         if (rawScopes == null || rawScopes.length() == 0) {
             throw new OA2RedirectableError(OA2Errors.INVALID_SCOPE, "Missing scopes parameter.", state, givenRedirect);
         }
-        Collection<String> scopes = new ArrayList<>();
 
+        // accepted scopes for this server
+        Collection<String> serverScopes = OA2Scopes.ScopeUtil.getScopes();
+        debug("accepted scopes by this server = " + serverScopes);
+
+        // scopes acceptable for this client
         OA2Client oa2Client = (OA2Client) st.getClient();
+        Collection<String> storedClientScopes = oa2Client.getScopes();
+        debug("acceptable client scopes = " + storedClientScopes);
+
+        // create list with effective scopes
+        Collection<String> scopes = new ArrayList<>();
+        // first handle public clients
         if (oa2Client.isPublicClient()) {
-            if(!oa2Client.getScopes().contains(OA2Scopes.SCOPE_OPENID)){
+            if(!storedClientScopes.contains(OA2Scopes.SCOPE_OPENID)){
                 throw new OA2RedirectableError(OA2Errors.INVALID_REQUEST, "Scopes must contain " + OA2Scopes.SCOPE_OPENID, state, givenRedirect);
             }
             // only allowed scope, regardless of what is requested.
             // This also covers the case of a client made with a full set of scopes, then
             // converted to a public client but the stored scopes are not updated.
             scopes.add(OA2Scopes.SCOPE_OPENID);
-            DebugUtil.trace(this, ".resolveScopes: after resolution=" + scopes);
+            debug("effective scopes = " + scopes);
             return scopes;
         }
+
+        // loop of the scopes passed in and check there in the server list
         StringTokenizer stringTokenizer = new StringTokenizer(rawScopes);
         boolean hasOpenIDScope = false;
         while (stringTokenizer.hasMoreTokens()) {
             String x = stringTokenizer.nextToken();
-            if (!OA2Scopes.ScopeUtil.hasScope(x)) {
+            // Check whether scope is acceptable for server (i.e. in serverScopes)
+            if (!serverScopes.contains(x)) {
+                warn("Unrecognized scope \""+x+"\" for client "+oa2Client.getIdentifierString());
                 throw new OA2RedirectableError(OA2Errors.INVALID_SCOPE, "Unrecognized scope \"" + x + "\"", state, givenRedirect);
             }
-            if (x.equals(OA2Scopes.SCOPE_OPENID)) hasOpenIDScope = true;
-            scopes.add(x);
+            if (!storedClientScopes.contains(x))    {
+                warn("Ignoring scope \""+x+"\" which is not enabled for client "+oa2Client.getIdentifierString());
+            } else {
+                scopes.add(x);
+                // only set hasOpenIDScope if it is also allowed for this client
+                if (x.equals(OA2Scopes.SCOPE_OPENID)) hasOpenIDScope = true;
+            }
         }
-        Collection<String> storedClientScopes = oa2Client.getScopes();
-        scopes = intersection(OA2Scopes.ScopeUtil.getScopes(), intersection(scopes, storedClientScopes));
 
-        DebugUtil.trace(this, ".resolveScopes: after resolution=" + scopes);
+        debug("effective scopes = " + scopes);
 
-
-        if (!hasOpenIDScope)
+        if (!hasOpenIDScope) {
+            warn( "Missing mandatory scope \""+OA2Scopes.SCOPE_OPENID+"\" for client "+oa2Client.getIdentifierString());
             throw new OA2RedirectableError(OA2Errors.INVALID_REQUEST, "Scopes must contain " + OA2Scopes.SCOPE_OPENID, state, givenRedirect);
+        }
         return scopes;
     }
 
-
-    /**
-     * Utility call to return the intersection of two lists of strings.
-     *
-     * @param x
-     * @param y
-     * @return
-     */
-    protected Collection<String> intersection(Collection<String> x, Collection<String> y) {
-        ArrayList<String> output = new ArrayList<>();
-        for (String val : x) {
-            if (y.contains(val)) {
-                output.add(val);
-            }
-        }
-        return output;
-    }
 
     /**
      * Basically, if the prompt parameter is there, we only support the login option.
