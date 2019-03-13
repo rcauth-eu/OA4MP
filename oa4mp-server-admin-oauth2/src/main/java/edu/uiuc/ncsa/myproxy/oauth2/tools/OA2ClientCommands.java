@@ -345,7 +345,8 @@ public class OA2ClientCommands extends ClientStoreCommands {
                 }
             }
         }
-        String scopes = getInput("enter a comma separated list of scopes. Scopes to this server will be rejected.", currentScopes);
+        sayi("Known scopes: "+getSupportedScopes());
+        String scopes = getInput("enter a comma separated list of scopes. Other scopes to this server will be rejected.", currentScopes);
 
         if (!(scopes == null || scopes.isEmpty())) {
             LinkedList<String> list = new LinkedList<>();
