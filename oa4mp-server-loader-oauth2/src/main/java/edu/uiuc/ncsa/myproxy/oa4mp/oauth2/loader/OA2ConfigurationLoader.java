@@ -129,6 +129,7 @@ public class OA2ConfigurationLoader<T extends ServiceEnvironmentImpl> extends Ab
             }
             return se;
         } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+            // Note: this will be returned to the user, but we have no server yet
             throw new GeneralException("Error: Could not create the runtime environment", e);
         }
     }
