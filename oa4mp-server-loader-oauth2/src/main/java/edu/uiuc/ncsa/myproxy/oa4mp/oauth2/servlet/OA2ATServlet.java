@@ -151,7 +151,7 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
 
     @Override
     protected void doIt(HttpServletRequest request, HttpServletResponse response) throws Throwable {
-        printAllParameters(request);
+        //printAllParameters(request);
         String grantType = getFirstParameterValue(request, OA2Constants.GRANT_TYPE);
         if (isEmpty(grantType)) {
             warn("Error servicing request. No grant type was given. Rejecting request.");
