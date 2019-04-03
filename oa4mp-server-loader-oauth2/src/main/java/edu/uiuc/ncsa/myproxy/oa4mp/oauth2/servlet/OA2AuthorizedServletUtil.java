@@ -9,7 +9,6 @@ import edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.IssuerTransactionState;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.MyProxyDelegationServlet;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.exceptions.NFWException;
-import edu.uiuc.ncsa.security.core.util.DebugUtil;
 import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
 import edu.uiuc.ncsa.security.delegation.server.UnapprovedClientException;
 import edu.uiuc.ncsa.security.delegation.server.request.AGRequest;
@@ -20,7 +19,7 @@ import edu.uiuc.ncsa.security.delegation.storage.Client;
 import edu.uiuc.ncsa.security.delegation.token.AuthorizationGrant;
 import edu.uiuc.ncsa.security.oauth_2_0.*;
 import edu.uiuc.ncsa.security.oauth_2_0.server.claims.OA2Claims;
-import edu.uiuc.ncsa.security.servlet.ServletDebugUtil;
+//import edu.uiuc.ncsa.security.servlet.ServletDebugUtil;
 import net.sf.json.JSONObject;
 import org.apache.http.HttpStatus;
 
@@ -64,7 +63,7 @@ public class OA2AuthorizedServletUtil {
 
         try {
             String cid = "client=" + client.getIdentifier();
-            DebugUtil.info(this, "2.a. Starting a new cert request: " + cid);
+            info( "2.a. Starting a new cert request: " + cid);
             servlet.checkClientApproval(client);
 
             AGResponse agResponse = (AGResponse) servlet.getAGI().process(new AGRequest(req, client));
@@ -72,21 +71,21 @@ public class OA2AuthorizedServletUtil {
             OA2ServiceTransaction transaction = (OA2ServiceTransaction) verifyAndGet(agResponse);
             transaction.setClient(client);
             servlet.getTransactionStore().save(transaction);
-            DebugUtil.info(this,"Saved new transaction with id=" + transaction.getIdentifierString());
+            info("Saved new transaction with id=" + transaction.getIdentifierString());
 
             Map<String, String> params = agResponse.getParameters();
 
             preprocess(new TransactionState(req, resp, params, transaction));
-            DebugUtil.trace(this, "saved transaction for " + cid + ", trans id=" + transaction.getIdentifierString());
+            debug( "saved transaction for " + cid + ", trans id=" + transaction.getIdentifierString());
 
             agResponse.write(resp);
-            DebugUtil.info(this,"2.b finished initial request for token =\"" + transaction.getIdentifierString() + "\".");
+            info("2.b finished initial request for token =\"" + transaction.getIdentifierString() + "\".");
 
             postprocess(new IssuerTransactionState(req, resp, params, transaction, agResponse));
             return transaction;
         } catch (Throwable t) {
             if (t instanceof UnapprovedClientException) {
-                DebugUtil.warn(this, "Unapproved client: " + client.getIdentifierString());
+                warn( "Unapproved client: " + client.getIdentifierString());
             }
             throw t;
         }
@@ -129,14 +128,14 @@ public class OA2AuthorizedServletUtil {
         if (t != null) {
             return t;
         }
-        ServletDebugUtil.trace(this, "Starting doDelegation");
+        debug("Starting doDelegation");
         t = doDelegation(httpServletRequest, httpServletResponse);
-        ServletDebugUtil.trace(this, "Starting done with doDelegation, creating claim util");
+        debug("Starting done with doDelegation, creating claim util");
         OA2ClaimsUtil claimsUtil = new OA2ClaimsUtil((OA2SE) servlet.getServiceEnvironment(), t);
-        DebugUtil.trace(this, "starting to process claims, creating basic claims:");
+        debug("starting to process claims, creating basic claims:");
         claimsUtil.processAuthorizationClaims(httpServletRequest, t);
         //  servlet.getTransactionStore().save(t); // save the claims.
-        DebugUtil.trace(this, "done with claims, transaction saved, claims = " + t.getClaims());
+        debug("done with claims, transaction saved, claims = " + t.getClaims());
         return t;
     }
 
@@ -218,15 +217,15 @@ public class OA2AuthorizedServletUtil {
 
         String rawSecret = params.get(CLIENT_SECRET);
         if (rawSecret != null) {
-            DebugUtil.info(this,"Client is sending secret in initial request. Though not forbidden by the protocol this is discouraged.");
+            info("Client is sending secret in initial request. Though not forbidden by the protocol this is discouraged.");
             if (!agResponse.getClient().getSecret().equals(rawSecret)) {
-                DebugUtil.info(this,"And for what it is worth, the client sent along an incorrect secret too...");
+                info("And for what it is worth, the client sent along an incorrect secret too...");
             }
         }
         String nonce = params.get(NONCE);
         // FIX for OAUTH-180. Server must support clients that do not use a nonce. Just log it and rock on.
         if (nonce == null || nonce.length() == 0) {
-            DebugUtil.info(this,"No nonce in initial request for " + ((AGResponse) iResponse).getClient().getIdentifierString());
+            info("No nonce in initial request for " + ((AGResponse) iResponse).getClient().getIdentifierString());
         } else {
             NonceHerder.putNonce(nonce); // Don't check it, just store it and return it later.
         }
@@ -239,7 +238,7 @@ public class OA2AuthorizedServletUtil {
 
         OA2ServiceTransaction st = createNewTransaction(agResponse.getGrant());
         st.setClient(agResponse.getClient());
-        DebugUtil.info(this,"Created new unsaved transaction with id=" + st.getIdentifierString());
+        info("Created new unsaved transaction with id=" + st.getIdentifierString());
         Collection<String> scopes = resolveScopes(st, params, state, givenRedirect);
 
         st.setScopes(scopes);
@@ -380,7 +379,17 @@ public class OA2AuthorizedServletUtil {
    Boiler plated code to make this work.
   */
 
+    protected void info(String x) {
+        servlet.info(x);
+    }
 
+    protected void debug(String x) {
+        servlet.debug(x);
+    }
+
+    protected void warn(String x) {
+        servlet.warn(x);
+}
 
 
     public void preprocess(TransactionState state) throws Throwable {

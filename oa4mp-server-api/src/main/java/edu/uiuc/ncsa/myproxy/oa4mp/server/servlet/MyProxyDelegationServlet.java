@@ -12,7 +12,6 @@ import edu.uiuc.ncsa.security.core.cache.CachedObject;
 import edu.uiuc.ncsa.security.core.cache.Cleanup;
 import edu.uiuc.ncsa.security.core.exceptions.UnknownClientException;
 import edu.uiuc.ncsa.security.core.util.BasicIdentifier;
-import edu.uiuc.ncsa.security.core.util.DebugUtil;
 import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
 import edu.uiuc.ncsa.security.delegation.server.UnapprovedClientException;
 import edu.uiuc.ncsa.security.delegation.server.issuers.AGIssuer;
@@ -131,7 +130,7 @@ public abstract class MyProxyDelegationServlet extends EnvServlet implements Tra
      * @throws SQLException
      */
     protected void realStoreUpdates() throws IOException, SQLException{
-        ServletDebugUtil.dbg(this, "starting store updates");
+        debug("starting store updates");
         processStoreCheck(getTransactionStore());
         processStoreCheck(getServiceEnvironment().getClientStore());
         processStoreCheck(getServiceEnvironment().getClientApprovalStore());
@@ -188,9 +187,9 @@ public abstract class MyProxyDelegationServlet extends EnvServlet implements Tra
         if (c == null) {
             if (getServiceEnvironment().getClientStore().size() == 0) {
                 // This tries to show if, perhpas, the wrong store wa loaded by printing out a little information about it.
-                DebugUtil.dbg(this,"CLIENT STORE HAS NO ENTRIES!");
-                DebugUtil.dbg(this, "client name is " + getServiceEnvironment().getClientStore().getClass().getSimpleName());
-                DebugUtil.dbg(this, "client store is a " + getServiceEnvironment().getClientStore());
+                debug("CLIENT STORE HAS NO ENTRIES!");
+                debug("client name is " + getServiceEnvironment().getClientStore().getClass().getSimpleName());
+                debug("client store is a " + getServiceEnvironment().getClientStore());
             }
             String ww = "Unknown client: \"" + identifier.toString() + "\"  cannot be found.";
             warn(ww + " Client store is " + getServiceEnvironment().getClientStore());
