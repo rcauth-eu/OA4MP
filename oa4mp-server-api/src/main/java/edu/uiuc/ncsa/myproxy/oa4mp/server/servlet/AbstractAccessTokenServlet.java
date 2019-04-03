@@ -25,7 +25,7 @@ public abstract class AbstractAccessTokenServlet extends MyProxyDelegationServle
     }
 
     protected IssuerTransactionState doDelegation(Client client, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Throwable, ServletException {
-        printAllParameters(httpServletRequest);
+        //printAllParameters(httpServletRequest);
         info("5.a. Starting access token exchange");
         Verifier v = getServiceEnvironment().getTokenForge().getVerifier(httpServletRequest);
         AuthorizationGrant ag = getServiceEnvironment().getTokenForge().getAuthorizationGrant(httpServletRequest);
