@@ -29,6 +29,7 @@ public class OA2Client extends Client {
     protected void populateClone(BaseClient c) {
         OA2Client client = (OA2Client) c;
         super.populateClone(client);
+        // TODO it seems client.setPublicClient(isPublicClient()) is missing?!
         client.setRtLifetime(getRtLifetime());
         client.setCallbackURIs(getCallbackURIs());
         client.setScopes(getScopes());
