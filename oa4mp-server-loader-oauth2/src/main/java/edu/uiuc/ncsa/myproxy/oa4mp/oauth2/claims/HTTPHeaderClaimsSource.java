@@ -33,7 +33,7 @@ public class HTTPHeaderClaimsSource extends BasicClaimsSourceImpl {
 
     @Override
     protected JSONObject realProcessing(JSONObject claims, HttpServletRequest request, ServiceTransaction transaction) throws UnsupportedScopeException {
-        DebugUtil.dbg(this,"Omit list = " + getOmitList());
+        DebugUtil.info(this,"Omit list = " + getOmitList());
         Enumeration headerNames = request.getHeaderNames();
         String caput = getCaput();
         if (caput == null) {
@@ -42,7 +42,7 @@ public class HTTPHeaderClaimsSource extends BasicClaimsSourceImpl {
         int caputLength = caput.length();
         while (headerNames.hasMoreElements()) {
             String name = headerNames.nextElement().toString();
-            DebugUtil.dbg(this, "processing claim " + name);
+            DebugUtil.info(this, "processing claim " + name);
             /*
             The resulting claim is without the caput, so if the caput is "OIDC_CLAIM_" and the header has a field named "OIDC_CLAIM_idp"
             the resulting claim would be called "idp"
@@ -51,10 +51,10 @@ public class HTTPHeaderClaimsSource extends BasicClaimsSourceImpl {
                 String key = name.substring(caputLength);
                 String value = request.getHeader(name);
                 if (!getOmitList().contains(key)) {
-                    DebugUtil.dbg(this, "adding claim " + key + "=" + value);
+                    DebugUtil.info(this, "adding claim " + key + "=" + value);
                     claims.put(key, value);
                 }else{
-                    DebugUtil.dbg(this, "OMITTING claim " + key + "=" + value + ", as per omit list");
+                    DebugUtil.info(this, "OMITTING claim " + key + "=" + value + ", as per omit list");
                 }
             }
         }

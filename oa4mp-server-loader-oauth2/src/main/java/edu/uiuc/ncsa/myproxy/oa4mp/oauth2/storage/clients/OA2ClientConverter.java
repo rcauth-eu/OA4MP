@@ -65,7 +65,7 @@ public class OA2ClientConverter<V extends OA2Client> extends ClientConverter<V> 
                 } else {
                     JSONArray array = (JSONArray) temp;
                     if (array.size() != 1) {
-                        ServletDebugUtil.dbg(this, "Got " + array.size() + " LDAP configurations. Using first one only...");
+                        ServletDebugUtil.info(this, "Got " + array.size() + " LDAP configurations. Using first one only...");
                         //    throw new GeneralException("Error: multiple LDAP configurations encountered for id \"" + otherV.getIdentifierString() + "\". Convert manually.");
                     }
                     ldap = (JSONObject) array.get(0);

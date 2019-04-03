@@ -9,7 +9,6 @@ import edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.IssuerTransactionState;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.MyProxyDelegationServlet;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.exceptions.NFWException;
-import edu.uiuc.ncsa.security.core.util.DebugUtil;
 import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
 import edu.uiuc.ncsa.security.delegation.server.UnapprovedClientException;
 import edu.uiuc.ncsa.security.delegation.server.request.AGRequest;
@@ -129,14 +128,14 @@ public class OA2AuthorizedServletUtil {
         if (t != null) {
             return t;
         }
-        ServletDebugUtil.dbg(this, "Starting doDelegation");
+        debug("Starting doDelegation");
         t = doDelegation(httpServletRequest, httpServletResponse);
-        ServletDebugUtil.dbg(this, "Starting done with doDelegation, creating claim util");
+        debug("Starting done with doDelegation, creating claim util");
         OA2ClaimsUtil claimsUtil = new OA2ClaimsUtil((OA2SE) servlet.getServiceEnvironment(), t);
-        DebugUtil.dbg(this, "starting to process claims, creating basic claims:");
+        debug("starting to process claims, creating basic claims:");
         claimsUtil.createBasicClaims(httpServletRequest, t);
         //  servlet.getTransactionStore().save(t); // save the claims.
-        DebugUtil.dbg(this, "done with claims, transaction saved, claims = " + t.getClaims());
+        debug("done with claims, transaction saved, claims = " + t.getClaims());
         return t;
     }
 
