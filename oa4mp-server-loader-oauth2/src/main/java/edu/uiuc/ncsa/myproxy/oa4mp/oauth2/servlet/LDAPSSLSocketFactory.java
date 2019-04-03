@@ -156,7 +156,7 @@ public class LDAPSSLSocketFactory extends SocketFactory {
 
     public static void main(String[] args) {
         try {
-            DebugUtil.dbg(LDAPSSLSocketFactory.class, System.getProperty("java.home") + "/lib/security/cacerts");
+            DebugUtil.info(LDAPSSLSocketFactory.class, System.getProperty("java.home") + "/lib/security/cacerts");
             DebugUtil.setIsEnabled(true);
           //  System.setProperty("javax.net.debug", "ssl");
 

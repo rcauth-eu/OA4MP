@@ -173,13 +173,13 @@ public class OA2ClaimsUtil {
      dbg(this, "Starting to process server default claims");
 
         if (oa2se != null && oa2se.getClaimSource() != null && oa2se.getClaimSource().isEnabled() && oa2se.getClaimSource().isRunAtAuthorization()) {
-            DebugUtil.dbg(this, "Service environment has a claims source enabled=" + oa2se.getClaimSource());
+            dbg(this, "Service environment has a claims source enabled=" + oa2se.getClaimSource());
 
             // allow the server to pre-populate the claims. This invokes the global claims handler for the server
             // to allow, e.g. pulling user information out of HTTp headers.
             oa2se.getClaimSource().process(claims, request, transaction);
         } else {
-    dbg(this, "Service environment has a claims no source enabled during authorization");
+    dbg(this, "Service environment has no claims source enabled during authorization");
         }
 
       dbg(this, "Starting to process Client runtime and sources at authorization.");
@@ -297,7 +297,7 @@ public class OA2ClaimsUtil {
 
   dbg(this, "BEFORE invoking claim sources, claims are = " + claims.toString(1));
         if (flowStates.getClaims) {
-            DebugUtil.dbg(this, "Claims allowed, creating sources from configuration");
+            dbg(this, "Claims allowed, creating sources from configuration");
             OA2ClientConfigurationFactory<OA2ClientConfiguration> ff = new OA2ClientConfigurationFactory(getFF());
 
             ff.createClaimSource(oa2CC, client.getConfig());
@@ -336,7 +336,7 @@ public class OA2ClaimsUtil {
         checkRequiredClaims(claims);
         transaction.setClaims(claims);// since the JSON library tends to clone things and they go missing, just set it again.
         oa2se.getTransactionStore().save(transaction);
-        dbg(this, "Done with special claims=" + claims.toString(1));
+        dbg(this, "Done with special claims, claims = " + claims.toString(1));
         // After post-processing it is possible that this user should be forbidden access, e.g. they are not in the correct group.
         // This is the first place we can check. If they are not allowed to make further requests, an access denied exception is thrown.
         if (!flowStates.acceptRequests) {
@@ -379,9 +379,9 @@ public class OA2ClaimsUtil {
      * @throws Throwable
      */
     public void doPostProcessing() throws Throwable {
-           dbg(this, ".doPostProcessing: has post-processing?" + getCC().hasPostProcessing());
+           dbg(this, ".doPostProcessing: has post-processing? " + getCC().hasPostProcessing());
         if (getCC().hasPostProcessing()) {
-            DebugUtil.dbg(this, ".doPostProcessing: has post-processing?" + getCC().getPostProcessing());
+            dbg(this, ".doPostProcessing: has post-processing? " + getCC().getPostProcessing());
 
             OA2ClientConfigurationFactory<OA2ClientConfiguration> ff = new OA2ClientConfigurationFactory(getFF());
             ff.setupPostProcessing(getCC(), getOA2Client().getConfig());
@@ -410,6 +410,7 @@ public class OA2ClaimsUtil {
 
     protected void dbg(Object c, String x){
           if(deepDebugOn){
+              // NOTE: since we've reordered the debug levels, trace is probably the right one here.
               DebugUtil.trace(c,x);
           }
     }
