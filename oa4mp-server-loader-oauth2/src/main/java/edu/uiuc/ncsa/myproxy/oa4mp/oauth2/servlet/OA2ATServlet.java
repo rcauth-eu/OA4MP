@@ -177,7 +177,7 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         claimsUtil.processClaims();
 
         atResponse.setClaims(st2.getClaims());
-        DebugUtil.dbg(this, "set token signing flag =" + atResponse.isSignToken());
+        DebugUtil.info(this, "set token signing flag =" + atResponse.isSignToken());
         if (!client.isRTLifetimeEnabled() && ((OA2SE) getServiceEnvironment()).isRefreshTokenEnabled()) {
             // Since this bit of information could be extremely useful if a service decides
             // eto start issuing refresh tokens after
@@ -213,7 +213,7 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         String rawSecret = null;
         // Fix for CIL-430. Check the header and decode as needed.
         if (HeaderUtils.hasBasicHeader(request)) {
-            DebugUtil.dbg(this, "doIt: Got the header.");
+            DebugUtil.info(this, "doIt: Got the header.");
             try {
                 rawSecret = HeaderUtils.getSecretFromHeaders(request);
             } catch (UnsupportedEncodingException e) {
@@ -221,7 +221,7 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
             }
 
         } else {
-            DebugUtil.dbg(this, "doIt: no header for authentication, looking at parameters.");
+            DebugUtil.info(this, "doIt: no header for authentication, looking at parameters.");
             rawSecret = getFirstParameterValue(request, CLIENT_SECRET);
 
         }
@@ -279,11 +279,11 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         // Fix for CIL-332
         if (rawSecret == null) {
             // check headers.
-            DebugUtil.dbg(this, "doIt: no secret, throwing exception.");
+            warn("doIt: no secret, throwing exception.");
             throw new OA2ATException(OA2Errors.UNAUTHORIZED_CLIENT, "Missing secret", HttpStatus.SC_FORBIDDEN);
         }
         if (!client.getSecret().equals(DigestUtils.shaHex(rawSecret))) {
-            DebugUtil.dbg(this, "doIt: bad secret, throwing exception.");
+            warn("doIt: bad secret, throwing exception.");
             throw new OA2ATException(OA2Errors.UNAUTHORIZED_CLIENT, "Incorrect secret", HttpStatus.SC_FORBIDDEN);
         }
 
@@ -402,7 +402,7 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
 
         TransactionStore transactionStore = getTransactionStore();
         BasicIdentifier basicIdentifier = new BasicIdentifier(atResponse.getParameters().get(OA2Constants.AUTHORIZATION_CODE));
-        DebugUtil.dbg(this, "getting transaction for identifier=" + basicIdentifier);
+        DebugUtil.info(this, "getting transaction for identifier=" + basicIdentifier);
         OA2ServiceTransaction transaction = (OA2ServiceTransaction) transactionStore.get(basicIdentifier);
         if (transaction == null) {
             // Then this request does not correspond to an previous one and must be rejected asap.
@@ -485,9 +485,9 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
 
     public static LinkedList<ClaimSource> setupClaimSources(OA2ServiceTransaction transaction, OA2SE oa2SE) {
         LinkedList<ClaimSource> scopeHandlers = new LinkedList<>();
-        DebugUtil.dbg(OA2ATServlet.class, "setting up claim sources");
+        DebugUtil.info(OA2ATServlet.class, "setting up claim sources");
         if (oa2SE.getClaimSource() != null && oa2SE.getClaimSource().isEnabled()) {
-            DebugUtil.dbg(OA2ATServlet.class, "Adding default claim source.");
+            DebugUtil.info(OA2ATServlet.class, "Adding default claim source.");
 
             scopeHandlers.add(oa2SE.getClaimSource());
         }
@@ -495,11 +495,11 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         ClaimSourceFactoryImpl.setFactory(new ClaimSourceFactoryImpl());
 
         OA2Client client = (OA2Client) transaction.getClient();
-        DebugUtil.dbg(OA2ATServlet.class, "Getting configured claim source factory " + ClaimSourceFactoryImpl.getFactory().getClass().getSimpleName());
-        DebugUtil.dbg(OA2ATServlet.class, "Adding other claim sources");
+        DebugUtil.info(OA2ATServlet.class, "Getting configured claim source factory " + ClaimSourceFactoryImpl.getFactory().getClass().getSimpleName());
+        DebugUtil.info(OA2ATServlet.class, "Adding other claim sources");
 
         scopeHandlers.addAll(ClaimSourceFactoryImpl.createClaimSources(oa2SE, transaction));
-        DebugUtil.dbg(OA2ATServlet.class, "Total claim source count = " + scopeHandlers.size());
+        DebugUtil.info(OA2ATServlet.class, "Total claim source count = " + scopeHandlers.size());
 
         ClaimSourceFactoryImpl.setFactory(oldSHF);
         return scopeHandlers;

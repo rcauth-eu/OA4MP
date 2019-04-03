@@ -172,7 +172,7 @@ public class LDAPClaimsSource extends BasicClaimsSourceImpl implements Logable {
             }
             context.close();
         } catch (Throwable throwable) {
-            DebugUtil.dbg(this, name + " Error getting search name \"" + throwable.getMessage() + "\"", throwable);
+            error(name + " Error getting search name \"" + throwable.getMessage() + "\"", throwable);
             handleException(throwable);
         } finally {
             closeConnection();
@@ -251,7 +251,7 @@ public class LDAPClaimsSource extends BasicClaimsSourceImpl implements Logable {
 
             } catch (Throwable e) {
                 // Do nothing. Allow for errors.
-                ServletDebugUtil.dbg(this,"failed to get LDAP directory context",e);
+                ServletDebugUtil.error(this,"failed to get LDAP directory context",e);
 
             }
         }
@@ -274,7 +274,7 @@ public class LDAPClaimsSource extends BasicClaimsSourceImpl implements Logable {
     //e.g, uid=eppn
     // The searchFilterValue is supplied in the initial claims.
     protected String getSearchFilterAttribute() {
-        ServletDebugUtil.dbg(this, "search attribute in LDAP is " + getLDAPCfg().getSearchFilterAttribute());
+        info("search attribute in LDAP is " + getLDAPCfg().getSearchFilterAttribute());
         if (getLDAPCfg().getSearchFilterAttribute() == null) {
             return LDAPConfigurationUtil.SEARCH_FILTER_ATTRIBUTE_DEFAULT; // default
         } else {
@@ -317,7 +317,7 @@ public class LDAPClaimsSource extends BasicClaimsSourceImpl implements Logable {
                                 String userName) throws NamingException {
         JSONObject json = new JSONObject();
         if (!e.hasMoreElements()) {
-            DebugUtil.dbg(this, "LDAP SEARCH RESULT IS EMPTY");
+            info("LDAP SEARCH RESULT IS EMPTY");
         }
         while (e.hasMoreElements()) {
             SearchResult entry = (SearchResult) e.next();

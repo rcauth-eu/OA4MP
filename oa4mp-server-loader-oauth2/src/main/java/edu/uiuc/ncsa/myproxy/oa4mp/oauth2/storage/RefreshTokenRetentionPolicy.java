@@ -31,7 +31,7 @@ public class RefreshTokenRetentionPolicy implements RetentionPolicy {
     }
 
     void debug(String x){
-       DebugUtil.dbg(this, x);
+       DebugUtil.info(this, x);
 
     }
     @Override

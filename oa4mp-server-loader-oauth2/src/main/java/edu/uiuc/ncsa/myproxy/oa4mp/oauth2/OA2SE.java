@@ -109,7 +109,7 @@ public class OA2SE extends ServiceEnvironmentImpl {
         this.issuer = issuer;
         //   this.mldap = mldap;
         if (claimSource instanceof BasicClaimsSourceImpl) {
-            DebugUtil.dbg(this, "***Setting runtime environment in the scope handler:" + claimSource.getClass().getSimpleName());
+            DebugUtil.info(this, "***Setting runtime environment in the scope handler:" + claimSource.getClass().getSimpleName());
             ((BasicClaimsSourceImpl) claimSource).setOa2SE(this);
         }
         this.acs = acs;
