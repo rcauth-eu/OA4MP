@@ -132,7 +132,7 @@ public class OA2AuthorizationServer extends AbstractAuthorizationServlet {
 
     @Override
     protected void doIt(HttpServletRequest request, HttpServletResponse response) throws Throwable {
-        printAllParameters(request);
+        //printAllParameters(request);
 
         Map<String, String> map = getFirstParameters(request);
 

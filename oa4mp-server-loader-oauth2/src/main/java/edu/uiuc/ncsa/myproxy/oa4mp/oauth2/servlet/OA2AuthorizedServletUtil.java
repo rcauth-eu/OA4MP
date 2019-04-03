@@ -104,7 +104,7 @@ public class OA2AuthorizedServletUtil {
      * @throws Throwable
      */
     protected OA2ServiceTransaction doIt(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Throwable {
-        printAllParameters(httpServletRequest);
+        //printAllParameters(httpServletRequest);
         String callback = httpServletRequest.getParameter(OA2Constants.REDIRECT_URI);
         if (httpServletRequest.getParameterMap().containsKey(OA2Constants.REQUEST_URI)) {
             throw new OA2RedirectableError(OA2Errors.REQUEST_URI_NOT_SUPPORTED,
