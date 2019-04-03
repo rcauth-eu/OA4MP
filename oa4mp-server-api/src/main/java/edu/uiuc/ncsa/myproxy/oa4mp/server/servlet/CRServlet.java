@@ -168,7 +168,7 @@ public abstract class CRServlet extends MyProxyDelegationServlet {
         MyProxyConnectable mpc = facades.findConnection(identifier, userName, password, loa, lifetime);
         // Note: mpc is actually MyProxyConnection which cannot be cast to MyProxyLogonConnection
 //        DebugUtil.dbg(this,((MPSingleConnectionProvider.MyProxyLogonConnection)mpc).getMyProxyLogon().toString());
-        DebugUtil.dbg(this,mpc.toString());
+        info("Adding connection to myproxy: "+mpc.toString());
         getMyproxyConnectionCache().add( mpc);
         return mpc;
     }

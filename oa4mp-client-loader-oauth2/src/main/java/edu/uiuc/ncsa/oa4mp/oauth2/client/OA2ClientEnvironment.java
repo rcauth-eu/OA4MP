@@ -48,7 +48,7 @@ public class OA2ClientEnvironment extends ClientEnvironment {
                 tokenForge,
                 assetStore, showRedirectPage,
                 errorPagePath, redirectPagePath, successPagePath);
-        ServletDebugUtil.dbg(this, "oidcEnabled?" + oidcEnabled);
+        info("oidcEnabled? " + oidcEnabled);
         this.oidcEnabled = oidcEnabled;
         this.showIDToken = showIDToken;
     }

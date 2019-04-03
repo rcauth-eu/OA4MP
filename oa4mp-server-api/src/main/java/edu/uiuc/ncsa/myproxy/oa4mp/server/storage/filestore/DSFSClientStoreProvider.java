@@ -28,10 +28,10 @@ public class DSFSClientStoreProvider extends FSProvider<DSFSClientStore> impleme
 
     @Override
     protected DSFSClientStore produce(File dataPath, File indexPath) {
-        DebugUtil.dbg(this, "dataPath=" + dataPath + ", indexPath=" + indexPath);
+        DebugUtil.info(this, "dataPath=" + dataPath + ", indexPath=" + indexPath);
         DSFSClientStore store = new DSFSClientStore(dataPath, indexPath, (IdentifiableProviderImpl<Client>) clientProvider, converter);
-        DebugUtil.dbg(this, "client name is " + store.getClass().getSimpleName());
-        DebugUtil.dbg(this, "client store is a " + store);
+        DebugUtil.info(this, "client name is " + store.getClass().getSimpleName());
+        DebugUtil.info(this, "client store is a " + store);
         if (store.size() == 0) {
             System.err.println("NO ENTRIES IN CLIENT STORE");
         } else {

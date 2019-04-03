@@ -135,7 +135,7 @@ public class ManagerFacade {
 
 
         if (!storedClient.getSecret().equals(DigestUtils.shaHex(rawSecret))) {
-            DebugUtil.dbg(this, "doIt: bad secret, throwing exception.");
+            DebugUtil.warn(this, "doIt: bad secret, throwing exception.");
             throw new GeneralException("Incorrect secret. Unauthorized client.");
         }
     }

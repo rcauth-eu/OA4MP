@@ -91,8 +91,8 @@ public class OA2TConverter<V extends OA2ServiceTransaction> extends TransactionC
         for (Object s : t.getScopes()) {
             if(DebugUtil.isEnabled()){
                 if(!(s instanceof String)){
-                    DebugUtil.dbg(this,"Erasure error. A String was expected, but an object of class " + s.getClass().getCanonicalName() + " was found instead.");
-                    DebugUtil.dbg(this, "Value of the class=\"" + s + "\"");
+                    DebugUtil.error(this,"Erasure error. A String was expected, but an object of class " + s.getClass().getCanonicalName() + " was found instead.");
+                    DebugUtil.error(this, "Value of the class=\"" + s + "\"");
                 }
             }
                 jsonArray.add(s.toString());
