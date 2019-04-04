@@ -237,6 +237,7 @@ public class ServiceEnvironmentImpl extends MyProxyServiceEnvironment implements
     public MailUtil getMailUtil() {
         if (mailUtil == null) {
             mailUtil = mup.get();
+            mailUtil.setMyLogger(this.getMyLogger());
         }
         return mailUtil;
     }
