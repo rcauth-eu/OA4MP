@@ -167,8 +167,14 @@ public class OA2ClientExceptionHandler extends ClientExceptionHandler {
      */
     protected void defaultSCXresponse(ServiceClientHTTPException tt, HttpServletRequest request) {
         request.setAttribute(OA2Constants.ERROR, tt.getClass().getSimpleName());
-        request.setAttribute(OA2Constants.ERROR_DESCRIPTION, "Status code=" + tt.getStatus() + ", message=\"" + tt.getMessage() + "\"");
-        request.setAttribute(OA2Constants.STATE, "(none)");
+        // When the HTTP status is 0 this is probably not caused by a remote service error
+        if (tt.getStatus()>0)
+            request.setAttribute(OA2Constants.ERROR_DESCRIPTION, "Status code=" + tt.getStatus() + ", message=\"" + tt.getMessage() + "\"");
+        else
+            request.setAttribute(OA2Constants.ERROR_DESCRIPTION, tt.getMessage());
+        // Don't set the state parameter as we don't have it in any case:
+        // it's mandatory when the client sends it, but then must be the value send by the client
+        //request.setAttribute(OA2Constants.STATE, "(none)");
 
     }
 }
