@@ -178,7 +178,7 @@ public abstract class AbstractRegistrationServlet extends MyProxyDelegationServl
         if (state == INITIAL_STATE) {
             if (getServiceEnvironment().getMaxAllowedNewClientRequests() <= getServiceEnvironment().getClientApprovalStore().getPendingCount()) {
                 //   throw new TooManyRequestsException("Error: Max number of new client requests reached. Request rejected.");
-                log("Too many client approvals pending. Max allowed unapproved count is " + getServiceEnvironment().getMaxAllowedNewClientRequests());
+                error("Too many client approvals pending. Max allowed unapproved count is " + getServiceEnvironment().getMaxAllowedNewClientRequests());
                 // Fixes CIL-414, CIL-426 (send email notification), CIL-427
 
                 getServiceEnvironment().getMailUtil().sendMessage("Too many pending approvals",
