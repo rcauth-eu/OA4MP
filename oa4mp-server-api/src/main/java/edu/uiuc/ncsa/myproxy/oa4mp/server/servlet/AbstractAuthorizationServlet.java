@@ -238,7 +238,7 @@ public abstract class AbstractAuthorizationServlet extends CRServlet implements 
 
     public int getState(HttpServletRequest request) {
         String action = request.getParameter(AUTHORIZATION_ACTION_KEY);
-        log("action = " + action);
+        info("servlet " + this.getServletName() + ": action = " + action);
         if (action == null || action.length() == 0) return AUTHORIZATION_ACTION_START;
         if (action.equals(AUTHORIZATION_ACTION_OK_VALUE)) return AUTHORIZATION_ACTION_OK;
         throw new GeneralException("Error: unknown authorization request action = \"" + action + "\"");
