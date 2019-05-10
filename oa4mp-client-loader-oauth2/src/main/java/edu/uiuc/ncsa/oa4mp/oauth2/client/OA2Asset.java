@@ -4,6 +4,7 @@ import edu.uiuc.ncsa.myproxy.oa4mp.client.Asset;
 import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.delegation.token.AccessToken;
 import edu.uiuc.ncsa.security.delegation.token.RefreshToken;
+import net.sf.json.JSONObject;
 
 import java.util.Date;
 
@@ -63,6 +64,15 @@ public class OA2Asset extends Asset {
 
     public void setRefreshToken(RefreshToken refreshToken) {
         this.refreshToken = refreshToken;
+    }
+
+    JSONObject idToken;
+    public JSONObject getIDToken() {
+        return idToken;
+    }
+
+    public void setIDToken(JSONObject idToken) {
+        this.idToken = idToken;
     }
 
 

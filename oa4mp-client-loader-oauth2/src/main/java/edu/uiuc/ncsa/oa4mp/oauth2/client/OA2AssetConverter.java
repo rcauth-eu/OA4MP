@@ -11,6 +11,7 @@ import edu.uiuc.ncsa.security.storage.data.ConversionMap;
 import edu.uiuc.ncsa.security.storage.data.SerializationKeys;
 import edu.uiuc.ncsa.security.util.pkcs.CertUtil;
 import edu.uiuc.ncsa.security.util.pkcs.MyPKCS10CertRequest;
+import net.sf.json.JSONObject;
 
 import java.net.URI;
 
@@ -44,6 +45,10 @@ public class OA2AssetConverter extends AssetConverter {
             refreshToken.setExpiresIn(map.getLong(getASK().refreshLifetime()));
             a.setRefreshToken(refreshToken);
         }
+        String idToken = map.getString(getASK().idToken());
+        if (idToken != null) {
+            a.setIDToken(JSONObject.fromObject(idToken));
+        }
         String state = map.getString(getASK().state());
         if (state != null) {
             a.setState(state);
@@ -67,6 +72,9 @@ public class OA2AssetConverter extends AssetConverter {
         if (a.getRefreshToken() != null) {
             map.put(getASK().refreshToken(), a.getRefreshToken().getToken());
             map.put(getASK().refreshLifetime(), a.getRefreshToken().getExpiresIn());
+        }
+        if (a.getIDToken() != null) {
+            map.put(getASK().idToken(), a.getIDToken().toString());
         }
         if (a.getState() != null) {
             map.put(getASK().state(), a.getState());
