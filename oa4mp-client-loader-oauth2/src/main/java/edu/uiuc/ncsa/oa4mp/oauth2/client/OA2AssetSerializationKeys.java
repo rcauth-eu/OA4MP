@@ -23,6 +23,12 @@ public class OA2AssetSerializationKeys extends AssetSerializationKeys {
         return refreshToken;
     }
 
+    String idToken  = "id_token";
+    public String idToken(String... x){
+        if(0 < x.length) idToken = x[0];
+        return idToken;
+    }
+
     String refreshLifetime = "refresh_lifetime";
     public String refreshLifetime(String... x){
         if(0 < x.length) refreshLifetime = x[0];
