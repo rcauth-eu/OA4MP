@@ -185,6 +185,10 @@ public class OA2MPService extends OA4MPService {
 
         asset.setAccessToken(atResponse2.getAccessToken());
         asset.setRefreshToken(atResponse2.getRefreshToken());
+        // Add ID token when present
+        Object idToken = atResponse2.getParameters().get(OA2Constants.ID_TOKEN);
+        if (idToken != null)
+            asset.setIDToken((JSONObject) idToken);
 
         getAssetStore().save(asset);
         return atResponse2;
@@ -268,6 +272,11 @@ public class OA2MPService extends OA4MPService {
         RTResponse rtResponse = ds2.refresh(rtRequest);
         asset.setAccessToken(rtResponse.getAccessToken());
         asset.setRefreshToken(rtResponse.getRefreshToken());
+        // Add ID token when present
+        Object idToken = rtResponse.getParameters().get(OA2Constants.ID_TOKEN);
+        if (idToken != null)
+            asset.setIDToken((JSONObject) idToken);
+
         getAssetStore().remove(asset.getIdentifier()); // clear out
         getAssetStore().save(asset);
         return rtResponse;
