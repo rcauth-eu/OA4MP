@@ -258,15 +258,6 @@ public abstract class AbstractRegistrationServlet extends MyProxyDelegationServl
         return x;
     }
 
-    boolean getBooleanParam(HttpServletRequest req, String key) {
-        String x = req.getParameter(key);
-        if (x == null || x.length() == 0) {
-            return false;
-        }
-        return Boolean.parseBoolean(x);
-
-    }
-
     protected String emailPattern = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$";
 
 
@@ -288,8 +279,8 @@ public abstract class AbstractRegistrationServlet extends MyProxyDelegationServl
         }
         client.setEmail(x);
 
-        client.setProxyLimited(getBooleanParam(request, CLIENT_PROXY_LIMITED));
-
+        String limitedChecked=getParameter(request, CLIENT_PROXY_LIMITED);
+        client.setProxyLimited(limitedChecked != null && limitedChecked.equals("on"));
 
         getServiceEnvironment().getClientStore().save(client);
         info("Adding approval record for client=" + client.getIdentifierString());
