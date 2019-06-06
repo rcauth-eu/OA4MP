@@ -171,6 +171,7 @@ public class OA2Client extends Client {
         x = x.substring(0, x.lastIndexOf("]"));
         x = x + "scopes=" + ((getScopes() == null) ? "[]" : getScopes().toString());
         x = x + ",callbacks=" + (getCallbackURIs() == null ? "[]" : getCallbackURIs().toString());
+        // TODO why do we set both this one here and rt lifetime below? Note that code my rely on either so we cannot easily change.
         x = x + ",refresh token lifetime=" + getRtLifetime();
         x = x + ",issuer=" + getIssuer();
         x = x + ",is public?=" + isPublicClient();
