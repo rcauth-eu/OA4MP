@@ -247,14 +247,18 @@ public class OA2RegistrationServlet extends AbstractRegistrationServlet {
             x = br.readLine();
         }
         if (0 < dudUris.size()) {
-            String xx = "</br>";
             boolean isOne = dudUris.size() == 1;
-            for (String y : dudUris) {
-                xx = xx + y + "</br>";
+            StringBuilder xx = new StringBuilder("The callback");
+            if (!isOne) xx.append('s');
+
+            for (int i=0; i<dudUris.size(); i++) {
+                xx.append(" \"").append(dudUris.get(i)).append('"');
+                if (i < dudUris.size()-1)
+                    xx.append(',');
             }
+            xx.append(isOne ? " is" : " are").append(" not valid.");
             warn("Attempt to add bad callback uris for client " + client.getIdentifierString());
-            String helpfulMessage = "The callback" + (isOne ? " " : "s ") + xx + (isOne ? "is" : "are") + " not valid.";
-            throw new ClientRegistrationRetryException(helpfulMessage, null, client);
+            throw new ClientRegistrationRetryException(xx.toString(), null, client);
 
         }
         br.close();
