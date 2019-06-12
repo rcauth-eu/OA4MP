@@ -276,6 +276,7 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
         T t = createInstance(tokenForgeProvider, clientProvider, constants);
         loadDebug();
         t.setDebugOn(DebugUtil.isEnabled());
+        t.info("Debugging is " + (t.isDebugOn() ? "on" : "off"));
         return t;
     }
 
