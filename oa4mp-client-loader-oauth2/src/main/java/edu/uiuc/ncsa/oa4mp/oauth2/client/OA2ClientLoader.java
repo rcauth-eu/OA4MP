@@ -269,8 +269,10 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
         HashMap<String, String> constants = new HashMap<String, String>();
         constants.put(CALLBACK_URI_KEY, OA2Constants.REDIRECT_URI);
         constants.put(ClientEnvironment.FORM_ENCODING, OA2Constants.FORM_ENCODING);
-        constants.put(ClientEnvironment.TOKEN, OA2Constants.ACCESS_TOKEN);
-        // TODO Something is wrong here, this overwrites the previous entry?!
+        // Note: this one gets replaced by the next one. We would need
+        // it for the implicit flow. In any case, there isn't a constant
+        // in ClientEnvironment available.
+//      constants.put(ClientEnvironment.TOKEN, OA2Constants.ACCESS_TOKEN);
         constants.put(ClientEnvironment.TOKEN, OA2Constants.AUTHORIZATION_CODE);
         // no verifier in this protocol.
 
