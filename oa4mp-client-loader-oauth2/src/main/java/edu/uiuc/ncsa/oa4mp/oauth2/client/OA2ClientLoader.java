@@ -120,7 +120,7 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
             wellKnownURIparsed=true;
             wellKnownURI = getCfgValue("wellKnownUri");
             if (wellKnownURI == null)
-                myLogger.warn("No wellKnownURI is defined, can NOT verify ID tokens");
+                warn("No wellKnownURI is defined, can NOT verify ID tokens");
         }
         return wellKnownURI;
 
@@ -134,11 +134,11 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
             if (showIDTokenValue==null) {
                 // NOTE: showIDToken is used only by OA2ReadyServlet via isShowIDToken() and used for debug purposes only.
                 showIDToken = Boolean.FALSE; // default
-                myLogger.info("No value for " + ClientXMLTags.SHOW_ID_TOKEN + " is configured, using default \"" + showIDToken + "\"");
+                info("No value for " + ClientXMLTags.SHOW_ID_TOKEN + " is configured, using default \"" + showIDToken + "\"");
             } else {
                 // Note: parseBoolean() only knows true, anything else becomes false.
                 showIDToken = Boolean.parseBoolean(showIDTokenValue);
-                myLogger.debug("Value for "+ClientXMLTags.SHOW_ID_TOKEN+" parsed as "+showIDToken);
+                debug("Value for "+ClientXMLTags.SHOW_ID_TOKEN+" parsed as "+showIDToken);
             }
         }
         return showIDToken;
@@ -151,11 +151,11 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
             String oidcEnabledValue=getCfgValue(ClientXMLTags.OIDC_ENABLED);
             if (oidcEnabledValue==null) {
                 oidcEnabled=Boolean.TRUE; // default
-                myLogger.warn("No value for "+ClientXMLTags.OIDC_ENABLED+" is configured, using default \""+oidcEnabled+"\"");
+                warn("No value for "+ClientXMLTags.OIDC_ENABLED+" is configured, using default \""+oidcEnabled+"\"");
             } else {
                 // Note: parseBoolean() only knows true, anything else becomes false.
                 oidcEnabled = Boolean.parseBoolean(oidcEnabledValue);
-                myLogger.debug("Value for "+ClientXMLTags.OIDC_ENABLED+" parsed as "+oidcEnabled);
+                debug("Value for "+ClientXMLTags.OIDC_ENABLED+" parsed as "+oidcEnabled);
             }
         }
         return oidcEnabled;
