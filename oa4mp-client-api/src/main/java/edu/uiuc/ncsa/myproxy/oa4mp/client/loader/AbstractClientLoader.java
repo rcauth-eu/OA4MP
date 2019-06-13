@@ -181,7 +181,7 @@ public abstract class AbstractClientLoader<T extends ClientEnvironment> extends 
                 return Long.parseLong(certLifetimeString);
             } catch (Throwable t) {
                 // if it fails, just say so, but keep going.
-                myLogger.warn("Error: parsing default lifetime for cert:" + t.getMessage());
+                warn("Error: parsing default lifetime for cert:" + t.getMessage());
             }
         }
         return defaultCertLifetime;
