@@ -391,13 +391,22 @@ public abstract class AbstractConfigurationLoader<T extends ServiceEnvironmentIm
     @Override
     public T load() {
         info("loading configuration.");
+
+        // Note: via our constructor calling LoggingConfigLoader() we've
+        // already setup myLogger, and it's good to also set its debug flag
+        // before calling createInstance().
+        loadDebug();
+        boolean debugOn = DebugUtil.isEnabled();
+        myLogger.setDebugOn(debugOn);
+        info("Debugging is " + (debugOn ? "on" : "off"));
+
         ServiceEnvironmentImpl se2 = createInstance();
         // now peel off the service address
 
         se2.setServiceAddress(getServiceAddress());
-        loadDebug();
-        se2.setDebugOn(DebugUtil.isEnabled());
-        se2.info("Debugging is " + (se2.isDebugOn() ? "on" : "off"));
+//      loadDebug();
+//      se2.setDebugOn(DebugUtil.isEnabled());
+//      se2.info("Debugging is " + (se2.isDebugOn() ? "on" : "off"));
 
         // part 2. This is done after main config load.
         Object[] polling = loadPolling();
