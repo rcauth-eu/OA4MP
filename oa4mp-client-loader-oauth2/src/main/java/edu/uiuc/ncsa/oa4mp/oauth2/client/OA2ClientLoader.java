@@ -273,10 +273,19 @@ public class OA2ClientLoader<T extends ClientEnvironment> extends AbstractClient
         // TODO Something is wrong here, this overwrites the previous entry?!
         constants.put(ClientEnvironment.TOKEN, OA2Constants.AUTHORIZATION_CODE);
         // no verifier in this protocol.
-        T t = createInstance(tokenForgeProvider, clientProvider, constants);
+
+        // Note: via our constructor calling LoggingConfigLoader() we've
+        // already setup myLogger, and it's good to also set its debug flag
+        // before calling createInstance().
         loadDebug();
-        t.setDebugOn(DebugUtil.isEnabled());
-        t.info("Debugging is " + (t.isDebugOn() ? "on" : "off"));
+        boolean debugOn = DebugUtil.isEnabled();
+        myLogger.setDebugOn(debugOn);
+        info("Debugging is " + (debugOn ? "on" : "off"));
+
+        T t = createInstance(tokenForgeProvider, clientProvider, constants);
+//      loadDebug();
+//      t.setDebugOn(DebugUtil.isEnabled());
+//      t.info("Debugging is " + (t.isDebugOn() ? "on" : "off"));
         return t;
     }
 
