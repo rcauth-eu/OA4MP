@@ -30,14 +30,16 @@ import java.net.URI;
 //         status of individual tokens? Probably for the first cut we do the former, since I think we will only want this
 //         if there is a serious issue and we need to get rid of a user's state ASAP rather than being able to micromange it.
 
+// TODO should this endpoint not advertised in the .well-known configuration?
+
 /**
  * Implements the <a href="https://tools.ietf.org/html/rfc7009">revocation specification</a>
  * <p>Note that according to this spec., revoking one of these implies revoking everything associated with
- * it so that a user may, in effect, performa alogout at some other service. This means in our case that we just remove the
- * transaction associated with the access token or the refresh token. If not token is found, that is considered a
+ * it so that a user may, in effect, perform a logout at some other service. This means in our case that we just remove the
+ * transaction associated with the access token or the refresh token. If no token is found, that is considered a
  * benign condition.</p>
- * <p>Also note that there is no designated endpoint for this, so we can stick it anywhere. Generally I propose
- * <b>revoke/</b> as the endpoint for the service.</p>
+ * <p>Also note that there is no designated endpoint for this, although RFC7009 suggests to use /revoke
+ * Generally I propose <b>/revoke</b> as the endpoint for the service.</p>
  * <p>Created by Jeff Gaynor<br>
  * on 4/8/19 at  5:05 PM
  */
