@@ -57,7 +57,7 @@
         </developer>
     </developers>
 
-    <mailingLists>
+    <!--mailingLists>
         <mailingList>
             <name>MyProxy User List</name>
             <subscribe>myproxy-user-request@lists.globus.org?subject=subscribe</subscribe>
@@ -66,7 +66,7 @@
             <post>myproxy-user@lists.globus.org</post>
             <otherArchives/>
         </mailingList>
-    </mailingLists>
+    </mailingLists-->
 
     <distributionManagement>
         <repository>
@@ -75,12 +75,12 @@
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2
             </url>
         </repository>
-        <snapshotRepository>
+        <!--snapshotRepository>
             <id>sonatype-nexus-snapshots</id>
             <name>sonatype</name>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
             <uniqueVersion>false</uniqueVersion>
-        </snapshotRepository>
+        </snapshotRepository-->
     </distributionManagement>
     <dependencies>
         <dependency>
@@ -174,42 +174,48 @@
             <version>${revision}</version>
         </dependency>
 
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+            <version>1.4.7</version>
+            <scope>provided</scope>
+        </dependency>
+
     </dependencies>
     <reporting>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9</version>
+                <version>3.1.1</version>
                 <configuration>
                     <aggregate>true</aggregate>
                     <use>false</use>
                     <includeDependencySources>true</includeDependencySources>
-
+                    <source>1.8</source>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>2.10</version>
+                <version>3.1.1</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>2.7</version>
+                <version>3.0.0</version>
                 <reportSets>
                     <reportSet>
                         <reports><!-- select reports -->
                             <report>index</report>
                             <report>dependencies</report>
-                            <report>project-team</report>
-                            <report>mailing-list</report>
+                            <report>team</report>
+                            <report>mailing-lists</report>
                             <report>summary</report>
-                            <report>cim</report>
-                            <report>issue-tracking</report>
-                            <report>license</report>
+                            <report>issue-management</report>
+                            <report>licenses</report>
                             <report>scm</report>
-                            <report>continuous-integration</report>
+                            <report>ci-management</report>
                         </reports>
                     </reportSet>
                 </reportSets>
@@ -217,7 +223,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
-                <version>2.4</version>
+                <version>3.0.0-M1</version>
                 <configuration>
                     <skip>true</skip>
                 </configuration>
@@ -229,7 +235,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
-                <version>3.2</version>
+                <version>3.8.2</version>
                 <dependencies>
                     <dependency>
                         <groupId>edu.uiuc.ncsa.maven.skin</groupId>
@@ -241,7 +247,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9</version>
+                <version>3.1.1</version>
                 <configuration>
                     <aggregate>true</aggregate>
                     <use>false</use>
