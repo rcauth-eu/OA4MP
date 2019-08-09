@@ -28,15 +28,19 @@ import static edu.uiuc.ncsa.security.core.util.DebugUtil.trace;
  */
 public class HeaderUtils {
     /**
-     * This gets the tokens from the authorization header. There are several types and it is possible to have several
-     * values passed in, so this returns an array of string rather than a single value. A downside with passing
-     * along several values this way is there is no way to disambiguate them, e.g. a client id from a client secret.
-     * If there is no authorization header or there are no tokens of the stated type, the returned value is an
-     * empty list.
+     * This gets the values from the authorization header. There are several types and it is possible
+     * to have several values passed in, so this returns an List of string rather than a single value.
+     * The raw values are returned, e.g. for a Basic Auth header, the returned value is Base64(id:secret).
+     * For getting the id and secret, {@link #getCredentialsFromHeaders(HttpServletRequest)} is more suitable.
+     * A downside with passing along several values this way is there is no way to disambiguate them,
+     * e.g. a client id from a client secret.
+     * If there is no authorization header or there are no tokens of the stated type, the returned value
+     * is an empty list.
      *
      * @param request
      * @param type    The type of token, e.g. "Bearer" or "Basic"
-     * @return
+     * @return List of String containing the values for the given type
+     * @see #getCredentialsFromHeaders(HttpServletRequest, String)
      */
     public static List<String> getAuthHeader(HttpServletRequest request, String type) {
 
@@ -51,16 +55,29 @@ public class HeaderUtils {
             ServletDebugUtil.trace(HeaderUtils.class, "getAuthHeader: Processing header = \"" + obj + "\"");
 
             if (obj != null) {
-                String rawToken = obj.toString();
-                if (rawToken == null || 0 == rawToken.length()) {
-                    // if there is no bearer token in the authorization header, it must be a parameter in the request.
+                String rawHeader = obj.toString();
+                if (rawHeader == null || 0 == rawHeader.length()) {
+                    // if there is no value in the authorization header, it must be a parameter in the request.
                     // do nothing. No value
                 } else {
+                    // Note that authorization headers are typically combined into a single comma separated header
+                    String[] authHeaders= rawHeader.split(", ");
                     // This next check is making sure that the type of token requested was sent.
-                    //
-                    if (rawToken.startsWith(type)) { // note the single space after the type
-                        rawToken = rawToken.substring(rawToken.indexOf(" ") + 1);
-                        out.add(rawToken);
+                    for (int i=0; i<authHeaders.length; i++) {
+                        // Make sure we remove whitespace at the beginning or end
+                        String authHeader = authHeaders[i].trim();
+                        if (authHeader.startsWith(type)) {
+                            // note the single space after the type.
+                            int valIndex = authHeader.indexOf(" ");
+                            if (valIndex < 0) {
+                                ServletDebugUtil.warn(HeaderUtils.class, "Invalid "+type+" authorization header");
+                            } else {
+                                // good to do one more trim in case there is more than a single space
+                                String headerValue = authHeader.substring(valIndex + 1).trim();
+                                if (!headerValue.isEmpty())
+                                    out.add(headerValue);
+                            }
+                        }
                     }
                 }
 
