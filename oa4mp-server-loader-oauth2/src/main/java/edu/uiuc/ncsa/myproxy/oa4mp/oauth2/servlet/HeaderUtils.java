@@ -17,6 +17,7 @@ import java.util.Enumeration;
 import java.util.List;
 
 import static edu.uiuc.ncsa.myproxy.oa4mp.server.ServiceConstantKeys.CONSUMER_KEY;
+import static edu.uiuc.ncsa.security.core.util.DebugUtil.error;
 import static edu.uiuc.ncsa.security.core.util.DebugUtil.trace;
 
 /**
@@ -121,14 +122,19 @@ public class HeaderUtils {
         String header64 = null;
         if (type.equals("Basic")) {
             header64 = getBasicHeader(request);
-        }
-        if (type.equals("Bearer")) {
+        } else if (type.equals("Bearer")) {
+            // Note: {@link edu.uiuc.ncsa.myproxy.oa4mp.oauth2.cm.oidc_cm.OIDCCMServlet}
+            // uses the Bearer instead of the Basic header with base64(id:secret).
             header64 = getBearerAuthHeader(request);
-        }
-        if (header64 == null) {
+        } else {
+            error(HeaderUtils.class, "Error: getCredentialsFromHeaders() called with unexpected type \""+type+"\"");
             throw new IllegalArgumentException("Error: Unknown auth type.");
         }
         String[] out = new String[2];
+        if (header64 == null) {
+            ServletDebugUtil.trace(HeaderUtils.class,"No credentials in " + type + " auth header.");
+            return out;
+        }
 
         // semantics are that this is base64.encode(URLEncode(id):URLEncode(secret))
         byte[] headerBytes = Base64.decodeBase64(header64);
