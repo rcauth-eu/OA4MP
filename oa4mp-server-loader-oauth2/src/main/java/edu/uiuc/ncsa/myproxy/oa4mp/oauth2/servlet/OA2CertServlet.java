@@ -24,6 +24,7 @@ import org.apache.http.HttpStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.security.GeneralSecurityException;
 import java.util.List;
@@ -69,41 +70,21 @@ public class OA2CertServlet extends ACS2 {
      */
     @Override
     public Client getClient(HttpServletRequest req) {
+        // First try getting id/secret from the request parameters
         String rawID = req.getParameter(CONST(CONSUMER_KEY));
         String rawSecret = getFirstParameterValue(req, CLIENT_SECRET);
-        // According to the spec. this must be in a Basic Authz header if it is not sent as parameter
-        List<String> basicTokens = HeaderUtils.getAuthHeader(req, "Basic");
-        if (2 < basicTokens.size()) {
-            // too many tokens to unscramble
-            throw new OA2GeneralError(OA2Errors.INVALID_TOKEN,
-                                      "Error: Too many Basic Authorization headers.",
-                                      HttpStatus.SC_BAD_REQUEST);
-        }
-        if (rawID == null) {
-            // maybe it was sent as an authorization header
-            // now we have to check for which of these is the identifier
 
-            for (String x : basicTokens) {
-                try {
-                    // Here is some detective work. We get up to TWO basic Authz headers with the id and secret.
-                    // Since ids are valid URIs the idea here is anything that is uri must be an id and the other
-                    // one is the secret. This also handles the case that one of these is sent as a parameter
-                    // in the call and the other is in the header.
-                    URI test = URI.create(x);
-                    // It is possible that the secret may be parseable as a valid URI (plain strings are
-                    // trivially uris). This checks that there a
-                    // scheme, which implies this is an id. The other token is assumed to
-                    // be the secret.
-                    if (test.getScheme() != null) {
-                        rawID = x;
-                    } else {
-                        rawSecret = x;
-                    }
-                } catch (Throwable t) {
-                    if (rawSecret == null) {
-                        rawSecret = x;
-                    }
-                }
+        // According to the spec. this must be in a Basic Authz header if it is not sent as parameter
+        if (rawID == null) {
+            try {
+                String[] basicTokens = HeaderUtils.getCredentialsFromHeaders(req);
+                rawID = basicTokens[HeaderUtils.ID_INDEX];
+                rawSecret = basicTokens[HeaderUtils.SECRET_INDEX];
+            } catch (UnsupportedEncodingException e) {
+                // Note: we don't catch other exceptions: they can be thrown directly
+                throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+                                          "Could not parse the Basic authorization header for client ID/secret.",
+                                          HttpStatus.SC_BAD_REQUEST);
             }
         }
         if (rawID == null) {
