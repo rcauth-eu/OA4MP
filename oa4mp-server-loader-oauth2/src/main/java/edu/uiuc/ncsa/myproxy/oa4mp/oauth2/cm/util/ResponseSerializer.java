@@ -164,7 +164,13 @@ public class ResponseSerializer {
         JSONArray clientIDs = new JSONArray();
         if (response.getClients() != null) {
             for (OA2Client client : response.getClients()) {
-                clientIDs.add(client.getIdentifierString());
+                // NOTE: in principle, PermissionServer.listClients() guarantees
+                // now that there are no null elements in the list, but it is
+                // still better to protect here too.
+                if (client==null)
+                    cose.getMyLogger().error("Skipping null in list of clients in response");
+                else
+                    clientIDs.add(client.getIdentifierString());
             }
         }
         PrintWriter pw = servletResponse.getWriter();
@@ -179,7 +185,13 @@ public class ResponseSerializer {
         JSONArray adminIDs = new JSONArray();
         if (response.getAdmins() != null) {
             for (AdminClient client : response.getAdmins()) {
-                adminIDs.add(client.getIdentifierString());
+                // NOTE: in principle, PermissionServer.listAdmins() guarantees
+                // now that there are no null elements in the list, but it is
+                // still better to protect here too.
+                if (client==null)
+                    cose.getMyLogger().error("Skipping null in list of adminClients in response");
+                else
+                    adminIDs.add(client.getIdentifierString());
             }
         }
         PrintWriter pw = servletResponse.getWriter();

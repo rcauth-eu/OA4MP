@@ -30,12 +30,20 @@ public class PermissionServer extends AbstractDDServer {
     public PermissionResponse listAdmins(ListAdminsRequest request) {
         // request needs an client id
         // canRead(request);
-        List<Identifier> adminIDs = getPermissionStore().getAdmins(request.getClient().getIdentifier());
+        Identifier clientID = request.getClient().getIdentifier();
+        List<Identifier> adminIDs = getPermissionStore().getAdmins(clientID);
         List<AdminClient> admins = new LinkedList<>();
         for (Identifier id : adminIDs) {
             try {
-                getPermissionStore().get(id, request.getClient().getIdentifier());
-                admins.add(getAdminClientStore().get(id));
+                // NOTE: since we use the permission store to get the list of adminIDs for given clientID,
+                // there is no point in checking whether for given combination indeed a permission exists.
+//              getPermissionStore().get(id, clientID);
+                AdminClient adminClient = getAdminClientStore().get(id);
+                if (adminClient==null)
+                    // NOTE: this situation means an inconsistency between the DB tables.
+                    cose.getMyLogger().error("non-existent adminClient in permissions table: adminID="+id+" (clientID="+clientID+")");
+                else
+                    admins.add(adminClient);
             } catch (Throwable t) {
                 // rock on
             }
@@ -47,12 +55,20 @@ public class PermissionServer extends AbstractDDServer {
     public PermissionResponse listClients(ListClientsRequest request) {
         // request needs an admin client only
 //        canRead(request);
-        List<Identifier> clientIDs = getPermissionStore().getClients(request.getAdminClient().getIdentifier());
+        Identifier adminID = request.getAdminClient().getIdentifier();
+        List<Identifier> clientIDs = getPermissionStore().getClients(adminID);
         List<OA2Client> clients = new LinkedList<>();
         for (Identifier id : clientIDs) {
             try {
-                getPermissionStore().get(request.getAdminClient().getIdentifier(), id);
-                clients.add((OA2Client) getClientStore().get(id));
+                // NOTE: since we use the permission store to get the list of clientIDs for given adminID,
+                // there is no point in checking whether for given combination indeed a permission exists.
+//              getPermissionStore().get(adminID, id);
+                OA2Client client = (OA2Client) getClientStore().get(id);
+                if (client==null)
+                    // NOTE: this situation means an inconsistency between the DB tables.
+                    cose.getMyLogger().error("non-existent client in permissions table: clientID="+id+" (adminID="+adminID+")");
+                else
+                    clients.add(client);
             } catch (Throwable throwable) {
                 // rock on if not allowed
             }
