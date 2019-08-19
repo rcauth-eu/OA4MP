@@ -219,25 +219,22 @@ public class ManagerFacade {
     }
 
     protected Response process(AdminClient subject, OA2Client target, ActionGet actionGet, JSONObject rawJSON) {
-        if (getTypeValue(rawJSON) == TYPE_ATTRIBUTE_VALUE) {
-            return getAttributeServer().process(RequestFactory.createRequest(subject, new TypeAttribute(), actionGet, target,
-                    SATFactory.getContent(rawJSON)));
+        switch (getTypeValue(rawJSON)) {
+            case TYPE_ATTRIBUTE_VALUE:
+                return getAttributeServer().process(RequestFactory.createRequest(subject, new TypeAttribute(), actionGet, target,
+                        SATFactory.getContent(rawJSON)));
+            case TYPE_CLIENT_VALUE:
+                return getClientServer().process(RequestFactory.createRequest(subject, new TypeClient(), actionGet, target,
+                        SATFactory.getContent(rawJSON)));
+            case TYPE_ADMIN_VALUE:
+                return getAdminClientServer().process(RequestFactory.createRequest(subject, new TypeAdmin(), actionGet, target,
+                        SATFactory.getContent(rawJSON)));
+            case TYPE_PERMISSION_VALUE:
+                return getPermissionServer().process(RequestFactory.createRequest(subject, new TypeClient(), actionGet, target,
+                        SATFactory.getContent(rawJSON)));
+            default:
+                throw new IllegalArgumentException("Unknown type.");
         }
-
-        if (getTypeValue(rawJSON) == TYPE_CLIENT_VALUE) {
-            return getClientServer().process(RequestFactory.createRequest(subject, new TypeClient(), actionGet, target,
-                    SATFactory.getContent(rawJSON)));
-        }
-
-        if (getTypeValue(rawJSON) == TYPE_ADMIN_VALUE) {
-            return getAdminClientServer().process(RequestFactory.createRequest(subject, new TypeAdmin(), actionGet, target,
-                    SATFactory.getContent(rawJSON)));
-        }
-        if (getTypeValue(rawJSON) == TYPE_PERMISSION_VALUE) {
-            return getPermissionServer().process(RequestFactory.createRequest(subject, new TypeClient(), actionGet, target,
-                    SATFactory.getContent(rawJSON)));
-        }
-        throw new IllegalArgumentException("Unknown type.");
     }
 
     protected Response process(AdminClient subject, OA2Client target, ActionList actionList, JSONObject rawJSON) {
@@ -260,20 +257,19 @@ public class ManagerFacade {
     }
 
     protected Response process(AdminClient subject, OA2Client target, ActionRemove actionRemove, JSONObject rawJSON) {
-        if (getTypeValue(rawJSON) == TYPE_ATTRIBUTE_VALUE) {
-            return getAttributeServer().process(RequestFactory.createRequest(subject, new TypeAttribute(), actionRemove, target,
-                    SATFactory.getContent(rawJSON)));
+        switch (getTypeValue(rawJSON)) {
+            case TYPE_ATTRIBUTE_VALUE:
+                return getAttributeServer().process(RequestFactory.createRequest(subject, new TypeAttribute(), actionRemove, target,
+                        SATFactory.getContent(rawJSON)));
+            case TYPE_CLIENT_VALUE:
+                return getClientServer().process(RequestFactory.createRequest(subject, new TypeClient(), actionRemove, target,
+                        SATFactory.getContent(rawJSON)));
+            case TYPE_PERMISSION_VALUE:
+                return getPermissionServer().process(RequestFactory.createRequest(subject, new TypePermission(), actionRemove, target,
+                        SATFactory.getContent(rawJSON)));
+            default:
+                throw new IllegalArgumentException("Unknown type.");
         }
-        if (getTypeValue(rawJSON) == TYPE_CLIENT_VALUE) {
-            return getClientServer().process(RequestFactory.createRequest(subject, new TypeClient(), actionRemove, target,
-                    SATFactory.getContent(rawJSON)));
-        }
-        if (getTypeValue(rawJSON) == TYPE_PERMISSION_VALUE) {
-            return getPermissionServer().process(RequestFactory.createRequest(subject, new TypePermission(), actionRemove, target,
-                    SATFactory.getContent(rawJSON)));
-        }
-
-        throw new IllegalArgumentException("Unknown type.");
 
     }
 
