@@ -25,7 +25,7 @@ public class OA2AdminClientCommands extends BaseClientStoreCommands {
                                   Store clientStore,
                                   ClientApprovalStore clientApprovalStore,
                                   PermissionsStore permissionsStore) {
-        super(logger, defaultIndent, clientStore, clientApprovalStore);
+        super(logger, defaultIndent, clientStore, clientApprovalStore, permissionsStore);
         this.permissionsStore = permissionsStore;
     }
 

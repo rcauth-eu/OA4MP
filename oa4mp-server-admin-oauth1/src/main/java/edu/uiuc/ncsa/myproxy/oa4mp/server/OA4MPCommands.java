@@ -75,7 +75,10 @@ public class OA4MPCommands extends BaseCommands {
 
 
     public ClientStoreCommands getNewClientStoreCommands() throws Exception {
-        return new ClientStoreCommands(getMyLogger(), "  ", getServiceEnvironment().getClientStore(), getServiceEnvironment().getClientApprovalStore());
+        return new ClientStoreCommands(getMyLogger(), "  ",
+                getServiceEnvironment().getClientStore(),
+                getServiceEnvironment().getClientApprovalStore(),
+                null); // NOTE: no permissionsStore for old OAuth1 cli.
     }
 
 

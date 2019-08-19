@@ -100,7 +100,10 @@ public class OA2Commands extends BaseCommands {
 
     @Override
     public ClientStoreCommands getNewClientStoreCommands() throws Exception {
-        OA2ClientCommands x = new OA2ClientCommands(getMyLogger(), "  ", getServiceEnvironment().getClientStore(), getServiceEnvironment().getClientApprovalStore());
+        OA2ClientCommands x = new OA2ClientCommands(getMyLogger(), "  ",
+                getOA2SE().getClientStore(),
+                getOA2SE().getClientApprovalStore(),
+                getOA2SE().getPermissionStore());
         x.setRefreshTokensEnabled(getOA2SE().isRefreshTokenEnabled());
         x.setSupportedScopes(getOA2SE().getScopes());
         return x;

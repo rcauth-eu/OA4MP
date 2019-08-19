@@ -3,6 +3,10 @@ package edu.uiuc.ncsa.myproxy.oa4mp.server.testing;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.ClientApprovalStoreCommands;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.ClientSorter;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.StoreCommands2;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.adminClient.AdminClient;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.permissions.Permission;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.permissions.PermissionList;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.permissions.PermissionsStore;
 import edu.uiuc.ncsa.security.core.Identifiable;
 import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.Store;
@@ -12,6 +16,7 @@ import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 import edu.uiuc.ncsa.security.delegation.server.storage.ClientApproval;
 import edu.uiuc.ncsa.security.delegation.server.storage.ClientApprovalStore;
 import edu.uiuc.ncsa.security.delegation.storage.BaseClient;
+import edu.uiuc.ncsa.security.delegation.storage.Client;
 import edu.uiuc.ncsa.security.util.cli.InputLine;
 import org.apache.commons.codec.digest.DigestUtils;
 
@@ -25,9 +30,10 @@ import java.util.List;
  * on 12/8/16 at  1:03 PM
  */
 public abstract class BaseClientStoreCommands extends StoreCommands2 {
-    public BaseClientStoreCommands(MyLoggingFacade logger, String defaultIndent, Store clientStore, ClientApprovalStore clientApprovalStore) {
+    public BaseClientStoreCommands(MyLoggingFacade logger, String defaultIndent, Store clientStore, ClientApprovalStore clientApprovalStore, PermissionsStore permissionsStore) {
         super(logger, defaultIndent, clientStore);
         this.clientApprovalStore = clientApprovalStore;
+        this.permissionsStore = permissionsStore;
         clientApprovalStoreCommands = new ClientApprovalStoreCommands(logger, defaultIndent, clientApprovalStore);
         setSortable(new ClientSorter());
     }
@@ -39,12 +45,22 @@ public abstract class BaseClientStoreCommands extends StoreCommands2 {
     // used internally to approve records.
     ClientApprovalStoreCommands clientApprovalStoreCommands = null;
 
+    PermissionsStore permissionsStore = null;
+
     public ClientApprovalStore getClientApprovalStore() {
         return clientApprovalStore;
     }
 
     public void setClientApprovalStore(ClientApprovalStore clientApprovalStore) {
         this.clientApprovalStore = clientApprovalStore;
+    }
+
+    public PermissionsStore getPermissionsStore() {
+        return permissionsStore;
+    }
+
+    public void setPermissionsStore(PermissionsStore permissionsStore) {
+        this.permissionsStore = permissionsStore;
     }
 
     protected void showCreateHashHelp() {
@@ -222,6 +238,13 @@ public abstract class BaseClientStoreCommands extends StoreCommands2 {
         newIdentifier = getInput("enter the identifier", client.getIdentifierString());
         boolean removeCurrentClient = false;
         Identifier oldID = client.getIdentifier();
+        BasicIdentifier newID = null;
+        if (!newIdentifier.equals(client.getIdentifierString())) {
+            sayi2(" replacing client with id=\"" + oldID + "\" with id=\"" + newID + "\" [y/n]? ");
+            removeCurrentClient = isOk(readline());
+            newID = (BasicIdentifier)BasicIdentifier.newID(newIdentifier);
+            client.setIdentifier(newID);
+        }
 
         // no clean way to do this.
         client.setName(getInput("enter the name", client.getName()));
@@ -230,18 +253,15 @@ public abstract class BaseClientStoreCommands extends StoreCommands2 {
         extraUpdates(client);
         sayi("here is the complete client:");
         longFormat(client);
-        if (!newIdentifier.equals(client.getIdentifierString())) {
-            sayi2(" remove client with id=\"" + client.getIdentifier() + "\" [y/n]? ");
-            removeCurrentClient = isOk(readline());
-            client.setIdentifier(BasicIdentifier.newID(newIdentifier));
-        }
         sayi2("save [y/n]?");
         if (isOk(readline())) {
             //getStore().save(client);
             if (removeCurrentClient) {
-                info("removing client with id = " + oldID);
-                getStore().remove(client.getIdentifier());
-                sayi("client with id " + oldID + " removed. Be sure to save any changes.");
+                // Updating the client_id is non-trivial, as it is the key for
+                // not only client records, but also for approval records and
+                // is used in the permissions records. updateClient() handles
+                // all three. Saving the client record is not done here.
+                updateClientID(client,oldID, newID);
             }
             sayi("client updated.");
             info("Client with id " + client.getIdentifierString() + " saving...");
@@ -258,8 +278,10 @@ public abstract class BaseClientStoreCommands extends StoreCommands2 {
 
         Identifiable x = findItem(inputLine);
         BaseClient baseClient = (BaseClient)x;
+        Identifier baseID = x.getIdentifier();
+        String baseIDString = baseClient.getIdentifierString();
         sayi("Removal of client named \"" + baseClient.getName()+"\"");
-        sayi("   with id=\"" + baseClient.getIdentifierString() + "\"");
+        sayi("   with id=\"" + baseIDString + "\"");
         String response = getInput("Are you sure you want to remove this client?(y/n)", "n");
         if(!response.equals("y")){
             sayi("aborted...");
@@ -267,10 +289,106 @@ public abstract class BaseClientStoreCommands extends StoreCommands2 {
         }
         
         sayi("Removing approval record");
-        info("Removing approval record for id=" + x.getIdentifierString());
-        getClientApprovalStore().remove(x.getIdentifier());
-        sayi("Done. Client approval with id = " + x.getIdentifierString() + " has been removed from the store");
-        info("Client record removed for id=" + x.getIdentifierString());
+        info("Removing approval record for id=" + baseIDString);
+        getClientApprovalStore().remove(baseID);
+        sayi("Done. Client approval with id = " + baseIDString + " has been removed from the store");
+        info("Client approval record removed for id=" + baseIDString);
+
+        // Also need to remove the permissions (if present)
+        PermissionsStore permissionsStore = getPermissionsStore();
+        if (permissionsStore!=null) {
+            if (baseClient instanceof Client) {
+                List<Identifier> admins = permissionsStore.getAdmins(baseID);
+                // remove all permissions for this client and these admins
+                for (Identifier adminID : admins) {
+                    PermissionList permissions = permissionsStore.get(adminID, baseID);
+                    for (Permission p : permissions) {
+                        sayi("Removing permissions record");
+                        info("Removing permissions record for clientID=" + baseIDString);
+                        permissionsStore.remove(p.getIdentifier());
+                        sayi("Done. permissions for adminID=" + adminID + " / clientID=" + baseIDString + " have been removed from the store");
+                        info("Permissions record removed for adminID="  + adminID + " / clientID=" + baseIDString);
+                    }
+                }
+            } else if (baseClient instanceof AdminClient) {
+                List<Identifier> clients = permissionsStore.getClients(baseID);
+                // remove all permissions for this client and these admins
+                for (Identifier clientID : clients) {
+                    PermissionList permissions = permissionsStore.get(baseID, clientID);
+                    for (Permission p : permissions) {
+                        sayi("Removing permissions record");
+                        info("Removing permissions record for adminID=" + baseIDString);
+                        permissionsStore.remove(p.getIdentifier());
+                        sayi("Done. permissions for adminID=" + baseIDString + " / clientID=" + clientID + " have been removed from the store");
+                        info("Permissions record removed for adminID=" + baseIDString + " / clientID=" + clientID);
+                    }
+                }
+            } else {
+                sayi("Skipping removal of permissions for client " + baseIDString + " of unknown type");
+                warn("Skipping removal of permissions for client " + baseIDString + " of unknown type: "+baseClient.getClass().getName());
+            }
+        }
         super.rm(inputLine);
+    }
+
+    /**
+     * Updates the client_id in approval and permission records and removes the old
+     * client, while saving the new updated client is the responsibility of the caller.
+     * @param oldID old client identifier
+     * @param newID new client identifier
+     */
+    protected void updateClientID(BaseClient client, Identifier oldID, Identifier newID){
+        info("replacing client with id = " + oldID + " with client with id = " + newID);
+
+        // Update the approval record for the client
+        ClientApprovalStore clientApprovalStore = getClientApprovalStore();
+        ClientApproval ca = (ClientApproval) clientApprovalStore.get(oldID);
+        if (ca != null) {
+            ca.setIdentifier(newID);
+            clientApprovalStore.remove(oldID);
+            clientApprovalStore.save(ca);
+        }
+
+        // Update the permission records for the client
+        PermissionsStore permissionsStore = getPermissionsStore();
+        if (permissionsStore != null) { // not all cli tools have permission stores
+            if (client instanceof Client) {
+                List<Identifier> admins = permissionsStore.getAdmins(oldID);
+                // update all permissions for this client and these admins
+                for (Identifier adminID : admins) {
+                    PermissionList permissions = permissionsStore.get(adminID, oldID);
+                    for (Permission p : permissions) {
+                        // Update the clientID for the given permission
+                        p.setClientID(newID);
+                        // Store the update entry
+                        permissionsStore.save(p);
+                    }
+                }
+            } else if (client instanceof AdminClient) {
+                List<Identifier> clients = permissionsStore.getClients(oldID);
+                // remove all permissions for this admin and these clients
+                for (Identifier clientID : clients) {
+                    PermissionList permissions = permissionsStore.get(oldID, clientID);
+                    for (Permission p : permissions) {
+                        // Update the clientID for the given permission
+                        p.setAdminID(newID);
+                        // Store the update entry
+                        permissionsStore.save(p);
+                    }
+                }
+            } else {
+                sayi("Skipping updating of permissions for client " + newID + " of unknown type");
+                warn("Skipping updating of permissions for client " + newID + " of unknown type: "+client.getClass().getName());
+            }
+
+        }
+
+        // NOTE: we remove the old entry here from the store, but the
+        // client object (our argument) is now changed and will be
+        // re-stored in edu.uiuc.ncsa.security.util.cli.StoreCommands.update()
+        getStore().remove(oldID);
+
+        sayi("client with id " + oldID + " replaced with id " + newID + ". Be sure to adapt clients.");
+        info("client with id " + oldID + " is now client with id " + newID);
     }
 }

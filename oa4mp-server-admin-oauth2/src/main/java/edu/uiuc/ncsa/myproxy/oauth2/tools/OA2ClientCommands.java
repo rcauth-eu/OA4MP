@@ -2,6 +2,7 @@ package edu.uiuc.ncsa.myproxy.oauth2.tools;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.storage.clients.OA2Client;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.ClientStoreCommands;
+import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.permissions.PermissionsStore;
 import edu.uiuc.ncsa.security.core.Identifiable;
 import edu.uiuc.ncsa.security.core.Store;
 import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
@@ -34,8 +35,9 @@ public class OA2ClientCommands extends ClientStoreCommands {
     public OA2ClientCommands(MyLoggingFacade logger,
                              String defaultIndent,
                              Store clientStore,
-                             ClientApprovalStore clientApprovalStore) {
-        super(logger, defaultIndent, clientStore, clientApprovalStore);
+                             ClientApprovalStore clientApprovalStore,
+                             PermissionsStore permissionsStore) {
+        super(logger, defaultIndent, clientStore, clientApprovalStore, permissionsStore);
     }
 
     public boolean isRefreshTokensEnabled() {

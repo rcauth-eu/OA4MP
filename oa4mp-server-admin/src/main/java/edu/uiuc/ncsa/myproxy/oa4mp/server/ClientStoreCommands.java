@@ -1,5 +1,6 @@
 package edu.uiuc.ncsa.myproxy.oa4mp.server;
 
+import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.permissions.PermissionsStore;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.testing.BaseClientStoreCommands;
 import edu.uiuc.ncsa.security.core.Identifiable;
 import edu.uiuc.ncsa.security.core.Identifier;
@@ -21,8 +22,8 @@ import java.io.IOException;
  * on 5/21/13 at  4:21 PM
  */
 public class ClientStoreCommands extends BaseClientStoreCommands {
-    public ClientStoreCommands(MyLoggingFacade logger, String defaultIndent, Store clientStore, ClientApprovalStore clientApprovalStore) {
-        super(logger, defaultIndent, clientStore, clientApprovalStore);
+    public ClientStoreCommands(MyLoggingFacade logger, String defaultIndent, Store clientStore, ClientApprovalStore clientApprovalStore, PermissionsStore permissionsStore) {
+        super(logger, defaultIndent, clientStore, clientApprovalStore, permissionsStore);
     }
 
 
@@ -69,6 +70,13 @@ public class ClientStoreCommands extends BaseClientStoreCommands {
         newIdentifier = getInput("enter the identifier", client.getIdentifierString());
         boolean removeCurrentClient = false;
         Identifier oldID = client.getIdentifier();
+        BasicIdentifier newID = null;
+        if (!newIdentifier.equals(client.getIdentifierString())) {
+            sayi2(" replacing client with id=\"" + oldID + "\" with id=\"" + newID + "\" [y/n]? ");
+            removeCurrentClient = isOk(readline());
+            newID = (BasicIdentifier)BasicIdentifier.newID(newIdentifier);
+            client.setIdentifier(newID);
+        }
 
         // no clean way to do this.
         client.setName(getInput("enter the name", client.getName()));
@@ -80,18 +88,15 @@ public class ClientStoreCommands extends BaseClientStoreCommands {
         extraUpdates(client);
         sayi("here is the complete client:");
         longFormat(client);
-        if (!newIdentifier.equals(client.getIdentifierString())) {
-            sayi2(" remove client with id=\"" + client.getIdentifier() + "\" [y/n]? ");
-            removeCurrentClient = isOk(readline());
-            client.setIdentifier(BasicIdentifier.newID(newIdentifier));
-        }
         sayi2("save [y/n]?");
         if (isOk(readline())) {
             //getStore().save(client);
             if (removeCurrentClient) {
-                info("removing client with id = " + oldID);
-                getStore().remove(client.getIdentifier());
-                sayi("client with id " + oldID + " removed. Be sure to save any changes.");
+                // Updating the client_id is non-trivial, as it is the key for
+                // not only client records, but also for approval records and
+                // is used in the permissions records. updateClient() handles
+                // all three. Saving the client record is not done here.
+                updateClientID(client,oldID, newID);
             }
             sayi("client updated.");
             info("Client with id " + client.getIdentifierString() + " saving...");
