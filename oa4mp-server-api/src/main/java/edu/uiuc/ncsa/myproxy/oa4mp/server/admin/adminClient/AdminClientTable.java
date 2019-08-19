@@ -24,7 +24,7 @@ public class AdminClientTable extends BaseClientTable {
         getColumnDescriptor().add(new ColumnDescriptorEntry(ak().issuer(), Types.LONGVARCHAR));
         getColumnDescriptor().add(new ColumnDescriptorEntry(ak().vo(), Types.LONGVARCHAR));
         getColumnDescriptor().add(new ColumnDescriptorEntry(ak().email(), Types.LONGVARCHAR));
-        getColumnDescriptor().add(new ColumnDescriptorEntry(ak().creationTS(), Types.TIMESTAMP));
+        getColumnDescriptor().add(new ColumnDescriptorEntry(ak().creationTS(), "DEFAULT CURRENT_TIMESTAMP", Types.TIMESTAMP));
 
     }
 }

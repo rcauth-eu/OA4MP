@@ -24,7 +24,7 @@ public class JSONStoreSQLTable extends Table {
     public void createColumnDescriptors() {
         super.createColumnDescriptors();
         getColumnDescriptor().add(new ColumnDescriptorEntry(storeKeys().content(), Types.LONGVARCHAR));
-        getColumnDescriptor().add(new ColumnDescriptorEntry(storeKeys().creationTimpestamp(), Types.TIMESTAMP));
+        getColumnDescriptor().add(new ColumnDescriptorEntry(storeKeys().creationTimpestamp(), "DEFAULT CURRENT_TIMESTAMP", Types.TIMESTAMP));
 
     }
 }

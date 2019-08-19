@@ -30,7 +30,7 @@ public class AssetStoreTable extends Table {
           getColumnDescriptor().add(new ColumnDescriptorEntry(ask().certificates(), LONGVARCHAR, true, false));
           getColumnDescriptor().add(new ColumnDescriptorEntry(ask().privateKey(), LONGVARCHAR, true, false));
           getColumnDescriptor().add(new ColumnDescriptorEntry(ask().redirect(), LONGVARCHAR, true, false));
-          getColumnDescriptor().add(new ColumnDescriptorEntry(ask().creationTime(), Types.TIMESTAMP, true, false));
+          getColumnDescriptor().add(new ColumnDescriptorEntry(ask().creationTime(), "DEFAULT CURRENT_TIMESTAMP", Types.TIMESTAMP, true, false));
           getColumnDescriptor().add(new ColumnDescriptorEntry(ask().certReq(), LONGVARCHAR, true, false));
           getColumnDescriptor().add(new ColumnDescriptorEntry(ask().token(), LONGVARCHAR, true, false));
 

@@ -31,7 +31,7 @@ public class ClientApprovalTable extends Table {
     public void createColumnDescriptors() {
         super.createColumnDescriptors();
         getColumnDescriptor().add(new ColumnDescriptorEntry(ca().approver(), LONGVARCHAR));
-        getColumnDescriptor().add(new ColumnDescriptorEntry(ca().approvalTS(), TIMESTAMP));
+        getColumnDescriptor().add(new ColumnDescriptorEntry(ca().approvalTS(), "DEFAULT CURRENT_TIMESTAMP", TIMESTAMP));
         getColumnDescriptor().add(new ColumnDescriptorEntry(ca().approved(), BOOLEAN));
         getColumnDescriptor().add(new ColumnDescriptorEntry(ca().status(), LONGVARCHAR));
     }
