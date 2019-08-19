@@ -111,7 +111,6 @@ public class ResponseSerializer {
     }
 
     protected void serialize(AttributeGetClientResponse response, HttpServletResponse servletResponse) throws IOException {
-        PrintWriter pw = servletResponse.getWriter();
         OA2ClientConverter clientConverter = (OA2ClientConverter)cose.getClientStore().getMapConverter();
         JSONObject json = new JSONObject();
         json.put("status", 0);
@@ -124,12 +123,11 @@ public class ResponseSerializer {
         json.put("content", jsonClient);
         //return json;
 
-        pw.println(json);
+        printJSON(servletResponse, json);
     }
 
 
     protected void serialize(AttributeGetAdminClientResponse response, HttpServletResponse servletResponse) throws IOException {
-        PrintWriter pw = servletResponse.getWriter();
         JSONObject json = new JSONObject();
         AdminClientConverter adminClientConverter = (AdminClientConverter)cose.getAdminClientStore().getMapConverter();
         json.put("status", 0);
@@ -142,7 +140,7 @@ public class ResponseSerializer {
         json.put("content", jsonClient);
         //return json;
 
-        pw.println(json);
+        printJSON(servletResponse, json);
     }
 
     protected void serialize(AttributeClientResponse response, HttpServletResponse servletResponse) throws IOException {
@@ -154,10 +152,9 @@ public class ResponseSerializer {
     }
 
     private void ok(HttpServletResponse servletResponse) throws IOException {
-        PrintWriter pw = servletResponse.getWriter();
         JSONObject json = new JSONObject();
         json.put("status", 0);
-        pw.println(json);
+        printJSON(servletResponse, json);
     }
 
     protected void serialize(ListClientResponse response, HttpServletResponse servletResponse) throws IOException {
@@ -173,11 +170,10 @@ public class ResponseSerializer {
                     clientIDs.add(client.getIdentifierString());
             }
         }
-        PrintWriter pw = servletResponse.getWriter();
         JSONObject json = new JSONObject();
         json.put("status", 0);
         json.put("content", clientIDs);
-        pw.println(json);
+        printJSON(servletResponse, json);
 
     }
 
@@ -194,46 +190,42 @@ public class ResponseSerializer {
                     adminIDs.add(client.getIdentifierString());
             }
         }
-        PrintWriter pw = servletResponse.getWriter();
         JSONObject json = new JSONObject();
         json.put("status", 0);
         json.put("content", adminIDs);
-        pw.println(json);
+        printJSON(servletResponse, json);
     }
 
     protected void serialize(GetResponse response, HttpServletResponse servletResponse) throws IOException {
-        PrintWriter pw = servletResponse.getWriter();
         if (response.getClient() == null) {
-            pw.println("");
+            printJSON(servletResponse, new JSONObject());
             return;
         }
         JSONObject json = clientToJSON(response.getClient());
         json.put("approved", response.isApproved());
-        pw.println(json);
+        printJSON(servletResponse, json);
 
     }
 
     protected void serialize(ACGetResponse response, HttpServletResponse servletResponse) throws IOException {
-        PrintWriter pw = servletResponse.getWriter();
         if (response.getAdminClient() == null) {
-            pw.println("");
+            printJSON(servletResponse, new JSONObject());
             return;
         }
         JSONObject json = acToJSON(response.getAdminClient());
         json.put("approved", response.isApproved());
-        pw.println(json);
+        printJSON(servletResponse, json);
 
     }
 
 
     private void serializeClient(OA2Client client, HttpServletResponse servletResponse) throws IOException {
-        PrintWriter pw = servletResponse.getWriter();
         if (client == null) {
-            pw.println("");
-        } else {
-            JSONObject json = clientToJSON(client);
-            pw.println(json);
+            printJSON(servletResponse, new JSONObject());
+            return;
         }
+        JSONObject json = clientToJSON(client);
+        printJSON(servletResponse, json);
     }
 
     private JSONObject clientToJSON(OA2Client client) {
@@ -267,13 +259,18 @@ public class ResponseSerializer {
 
 
     protected void serialize(CreateResponse response, HttpServletResponse servletResponse) throws IOException {
-        PrintWriter pw = servletResponse.getWriter();
         if (response.getClient() == null) {
-            pw.println("");
+            printJSON(servletResponse, new JSONObject());
             return;
         }
         JSONObject json = clientToJSON(response.getClient());
         json.put("secret", response.getSecret());
-        servletResponse.getWriter().println(json);
+        printJSON(servletResponse, json);
+    }
+
+    protected void printJSON(HttpServletResponse servletResponse, JSONObject json) throws IOException{
+        servletResponse.setHeader("Content-Type", "application/json;charset=UTF-8");
+        PrintWriter pw = servletResponse.getWriter();
+        pw.println(json);
     }
 }
