@@ -14,6 +14,7 @@ import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.things.types.TypeAdmin;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.things.types.TypeAttribute;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.things.types.TypeClient;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.things.types.TypePermission;
+import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.exceptions.NotImplementedException;
 import edu.uiuc.ncsa.security.core.util.DebugUtil;
@@ -119,21 +120,18 @@ public class ManagerFacade {
             throw new GeneralException("Error: No client found.");
         }
         String rawSecret = client.getSecret();
-        if (rawSecret == null || rawSecret.length() == 0) {
-            DebugUtil.dbg(this, "doIt: no secret, throwing exception.");
-            throw new GeneralException("Missing secret");
-        }
-
-
-        if (client.getSecret() == null || client.getSecret().isEmpty()) {
+        if (rawSecret == null || rawSecret.isEmpty()) {
             throw new GeneralException("Error: No secret given for this client.");
-
+        }
+        Identifier identifier = client.getIdentifier();
+        if (identifier == null || identifier.toString().isEmpty()) {
+            throw new GeneralException("Error: No identifier given for this client.");
         }
 
-        if (!store.containsKey(client.getIdentifier())) {
-            throw new GeneralException("Error: No such client for identifier \"" + client.getIdentifierString() + "\".");
+        if (!store.containsKey(identifier)) {
+            throw new GeneralException("Error: No such client for identifier \"" + identifier + "\".");
         }
-        BaseClient storedClient = (BaseClient) store.get(client.getIdentifier());
+        BaseClient storedClient = (BaseClient) store.get(identifier);
 
 
         if (!storedClient.getSecret().equals(DigestUtils.shaHex(rawSecret))) {

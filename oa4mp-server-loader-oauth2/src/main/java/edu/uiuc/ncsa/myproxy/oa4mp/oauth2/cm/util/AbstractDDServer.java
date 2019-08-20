@@ -8,6 +8,7 @@ import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.permissions.Permission;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.permissions.PermissionException;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.permissions.PermissionList;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.permissions.PermissionsStore;
+import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.delegation.server.UnapprovedClientException;
 import edu.uiuc.ncsa.security.delegation.server.storage.ClientApprovalStore;
 import edu.uiuc.ncsa.security.delegation.server.storage.ClientStore;
@@ -126,7 +127,13 @@ public abstract class AbstractDDServer implements DoubleDispatchServer, Server {
     }
 
     protected PermissionList getPermissions(AbstractDDRequest request) {
-        return cose.getPermissionStore().get(request.adminClient.getIdentifier(), request.client.getIdentifier());
+        Identifier adminID, clientID;
+        if (request.getAdminClient() == null || (adminID=request.getAdminClient().getIdentifier()) == null)
+            throw new PermissionException("Missing admin client.");
+        if (request.getClient() == null || (clientID=request.getClient().getIdentifier()) == null)
+            throw new PermissionException("Missing client.");
+        // NOTE: get() would throw a NPE when either adminID or clientID is null
+        return cose.getPermissionStore().get(adminID, clientID);
     }
 
     protected ClientStore getClientStore() {

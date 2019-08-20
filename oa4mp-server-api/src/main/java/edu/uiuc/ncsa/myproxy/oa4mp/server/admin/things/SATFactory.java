@@ -41,6 +41,8 @@ public class SATFactory implements SAT {
 
     public static int getSubjectValue(JSONObject json) {
         JSONObject api = json.getJSONObject(KEYS_API);
+        if (api.isEmpty()) return SUBJECT_UNKNOWN_VALUE;
+
         JSONObject subject = api.getJSONObject(KEYS_SUBJECT);
         if (subject.containsKey(SUBJECT_ADMIN)) {
             return SUBJECT_ADMIN_VALUE;
@@ -60,6 +62,8 @@ public class SATFactory implements SAT {
 
     public static BaseClient getSubject(JSONObject json) {
         JSONObject api = json.getJSONObject(KEYS_API);
+        if (api.isEmpty()) return null;
+
         JSONObject subject = api.getJSONObject(KEYS_SUBJECT);
         if (subject.containsKey(SUBJECT_ADMIN)) {
             return getACConverter().fromJSON(subject);
@@ -80,6 +84,8 @@ public class SATFactory implements SAT {
 
     public static int getTargetValue(JSONObject json) {
         JSONObject api = json.getJSONObject(KEYS_API);
+        if (api.isEmpty()) return TARGET_NO_VALUE;
+
         JSONObject target = api.getJSONObject(KEYS_TARGET);
         if (target.containsKey(SUBJECT_ADMIN)) {
             return TARGET_ADMIN_VALUE;
@@ -93,6 +99,8 @@ public class SATFactory implements SAT {
 
     public static BaseClient getTarget(JSONObject json) {
         JSONObject api = json.getJSONObject(KEYS_API);
+        if (api.isEmpty()) return null;
+
         JSONObject target = api.getJSONObject(KEYS_TARGET);
         if (target.containsKey(SUBJECT_ADMIN)) {
             return getACConverter().fromJSON(target);
@@ -106,6 +114,8 @@ public class SATFactory implements SAT {
 
     public static JSON getContent(JSONObject json) {
         JSONObject api = json.getJSONObject(KEYS_API);
+        if (api.isEmpty()) return null;
+
         Object object = api.get(KEYS_CONTENT);
         if (object == null) return null;
         if (object instanceof JSONObject) {
@@ -119,17 +129,21 @@ public class SATFactory implements SAT {
 
     public static int getMethodValue(JSONObject json) {
         JSONObject api = json.getJSONObject(KEYS_API);
-        JSONObject action = api.getJSONObject(KEYS_ACTION);
+        if (api.isEmpty()) return ACTION_UNKNOWN_VALUE;
 
-        if (action.getString(KEYS_METHOD).equals(ACTION_ADD)) return ACTION_ADD_VALUE;
-        if (action.getString(KEYS_METHOD).equals(ACTION_APPROVE)) return ACTION_APPROVE_VALUE;
-        if (action.getString(KEYS_METHOD).equals(ACTION_UNAPPROVE)) return ACTION_UNAPPROVE_VALUE;
-        if (action.getString(KEYS_METHOD).equals(ACTION_CREATE)) return ACTION_CREATE_VALUE;
-        if (action.getString(KEYS_METHOD).equals(ACTION_EXECUTE)) return ACTION_EXECUTE_VALUE;
-        if (action.getString(KEYS_METHOD).equals(ACTION_GET)) return ACTION_GET_VALUE;
-        if (action.getString(KEYS_METHOD).equals(ACTION_LIST)) return ACTION_LIST_VALUE;
-        if (action.getString(KEYS_METHOD).equals(ACTION_REMOVE)) return ACTION_REMOVE_VALUE;
-        if (action.getString(KEYS_METHOD).equals(ACTION_SET)) return ACTION_SET_VALUE;
+        JSONObject action = api.getJSONObject(KEYS_ACTION);
+        String method = action.getString(KEYS_METHOD);
+        if (method==null) return ACTION_UNKNOWN_VALUE;
+
+        if (method.equals(ACTION_ADD)) return ACTION_ADD_VALUE;
+        if (method.equals(ACTION_APPROVE)) return ACTION_APPROVE_VALUE;
+        if (method.equals(ACTION_UNAPPROVE)) return ACTION_UNAPPROVE_VALUE;
+        if (method.equals(ACTION_CREATE)) return ACTION_CREATE_VALUE;
+        if (method.equals(ACTION_EXECUTE)) return ACTION_EXECUTE_VALUE;
+        if (method.equals(ACTION_GET)) return ACTION_GET_VALUE;
+        if (method.equals(ACTION_LIST)) return ACTION_LIST_VALUE;
+        if (method.equals(ACTION_REMOVE)) return ACTION_REMOVE_VALUE;
+        if (method.equals(ACTION_SET)) return ACTION_SET_VALUE;
 
         return ACTION_UNKNOWN_VALUE;
 
@@ -137,38 +151,52 @@ public class SATFactory implements SAT {
 
     public static Action getMethod(JSONObject json) {
         JSONObject api = json.getJSONObject(KEYS_API);
-        JSONObject action = api.getJSONObject(KEYS_ACTION);
+        if (api.isEmpty()) return null;
 
-        if (action.getString(KEYS_METHOD).equals(ACTION_ADD)) return new ActionAdd();
-        if (action.getString(KEYS_METHOD).equals(ACTION_APPROVE)) return new ActionApprove();
-        if (action.getString(KEYS_METHOD).equals(ACTION_CREATE)) return new ActionCreate();
-        if (action.getString(KEYS_METHOD).equals(ACTION_EXECUTE)) return new ActionExecute();
-        if (action.getString(KEYS_METHOD).equals(ACTION_GET)) return new ActionGet();
-        if (action.getString(KEYS_METHOD).equals(ACTION_LIST)) return new ActionList();
-        if (action.getString(KEYS_METHOD).equals(ACTION_REMOVE)) return new ActionRemove();
-        if (action.getString(KEYS_METHOD).equals(ACTION_SET)) return new ActionSet();
+        JSONObject action = api.getJSONObject(KEYS_ACTION);
+        String method = action.getString(KEYS_METHOD);
+        if (method==null) return null;
+
+        if (method.equals(ACTION_ADD)) return new ActionAdd();
+        if (method.equals(ACTION_APPROVE)) return new ActionApprove();
+        if (method.equals(ACTION_CREATE)) return new ActionCreate();
+        if (method.equals(ACTION_EXECUTE)) return new ActionExecute();
+        if (method.equals(ACTION_GET)) return new ActionGet();
+        if (method.equals(ACTION_LIST)) return new ActionList();
+        if (method.equals(ACTION_REMOVE)) return new ActionRemove();
+        if (method.equals(ACTION_SET)) return new ActionSet();
 
         return null;
     }
 
     public static int getTypeValue(JSONObject json) {
         JSONObject api = json.getJSONObject(KEYS_API);
+        if (api.isEmpty()) return TYPE_UNKNOWN_VALUE;
+
         JSONObject action = api.getJSONObject(KEYS_ACTION);
-        if (action.getString(KEYS_TYPE).equals(TYPE_ATTRIBUTE)) return TYPE_ATTRIBUTE_VALUE;
-        if (action.getString(KEYS_TYPE).equals(TYPE_PERMISSION)) return TYPE_PERMISSION_VALUE;
-        if (action.getString(KEYS_TYPE).equals(TYPE_ADMIN)) return TYPE_ADMIN_VALUE;
-        if (action.getString(KEYS_TYPE).equals(TYPE_CLIENT)) return TYPE_CLIENT_VALUE;
+        String type = action.getString(KEYS_TYPE);
+        if (type==null) return TYPE_UNKNOWN_VALUE;
+
+        if (type.equals(TYPE_ATTRIBUTE)) return TYPE_ATTRIBUTE_VALUE;
+        if (type.equals(TYPE_PERMISSION)) return TYPE_PERMISSION_VALUE;
+        if (type.equals(TYPE_ADMIN)) return TYPE_ADMIN_VALUE;
+        if (type.equals(TYPE_CLIENT)) return TYPE_CLIENT_VALUE;
         return TYPE_UNKNOWN_VALUE;
 
     }
 
     public static Type getType(JSONObject json) {
         JSONObject api = json.getJSONObject(KEYS_API);
+        if (api.isEmpty()) return null;
+
         JSONObject action = api.getJSONObject(KEYS_ACTION);
-        if (action.getString(KEYS_TYPE).equals(TYPE_ATTRIBUTE)) return new TypeAttribute();
-        if (action.getString(KEYS_TYPE).equals(TYPE_PERMISSION)) return new TypePermission();
-        if (action.getString(KEYS_TYPE).equals(TYPE_ADMIN)) return new TypeAdmin();
-        if (action.getString(KEYS_TYPE).equals(TYPE_CLIENT)) return new TypeClient();
+        String type = action.getString(KEYS_TYPE);
+        if (type==null) return null;
+
+        if (type.equals(TYPE_ATTRIBUTE)) return new TypeAttribute();
+        if (type.equals(TYPE_PERMISSION)) return new TypePermission();
+        if (type.equals(TYPE_ADMIN)) return new TypeAdmin();
+        if (type.equals(TYPE_CLIENT)) return new TypeClient();
         return null;
     }
 }
