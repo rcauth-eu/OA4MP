@@ -73,12 +73,20 @@ public class OA2UtilServlet extends EnvServlet {
         }
         // simple case is its just a string
         Object rawClaims = json.get(claimName);
+
+        // If claim value in the token is a String, convert it into a 1-element JSONArray
+        if (rawClaims instanceof String) {
+            rawClaims = JSONArray.fromObject("[\""+rawClaims+"\"]");
+        }
+
         if (rawClaims instanceof JSONArray) {
             JSONArray array = (JSONArray) rawClaims;
             for (int i = 0; i < array.size(); i++) {
                 String nextString = array.getString(i);
+                // TODO why split the value of an element on , ? E.g. scope claim is space separated.
                 // first cut, parse by , as delimiter.
-                StringTokenizer st = new StringTokenizer(nextString, ",", false);
+//              StringTokenizer st = new StringTokenizer(nextString, ",", false);
+                StringTokenizer st = new StringTokenizer(nextString, " ", false);
                 while(st.hasMoreTokens()){
                     String x = st.nextToken();
                     if(claimValue.equals(x)){
