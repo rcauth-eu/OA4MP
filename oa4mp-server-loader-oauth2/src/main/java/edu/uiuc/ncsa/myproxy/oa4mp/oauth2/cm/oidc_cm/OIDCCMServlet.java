@@ -81,6 +81,9 @@ public class OIDCCMServlet extends EnvServlet {
         String[] credentials = HeaderUtils.getCredentialsFromHeaders(httpServletRequest, "Bearer");
         // need to verify that this is an admin client.
         Identifier acID = BasicIdentifier.newID(credentials[HeaderUtils.ID_INDEX]);
+        if (acID==null) {
+            throw new GeneralException("Error: missing admin client.");
+        }
         if (!getOA2SE().getAdminClientStore().containsKey(acID)) {
             throw new GeneralException("Error: the given id of \"" + acID + "\" is not recognized as an admin client.");
         }
