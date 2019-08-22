@@ -19,6 +19,8 @@ import static edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet.OA2RegistrationServlet.
  * on 4/9/19 at  1:39 PM
  */
 public class OA2AdminRegistrationServlet extends AbstractRegistrationServlet {
+    public static final String ISSUER_NAME = "issuer";
+
     @Override
     protected String getInitPage() {
         return "admin-client-registration-init.jsp";
@@ -29,6 +31,15 @@ public class OA2AdminRegistrationServlet extends AbstractRegistrationServlet {
         return "admin-client-registration-ok.jsp";
     }
 
+    @Override
+    public void prepare(PresentableState state) throws Throwable {
+        super.prepare(state);
+        HttpServletRequest request = state.getRequest();
+
+        if (state.getState() == INITIAL_STATE) {
+            request.setAttribute(ISSUER_NAME, ISSUER_NAME);
+        }
+    }
 
     protected BaseClient setupNewClient(HttpServletRequest request, HttpServletResponse response) throws Throwable {
         OA2SE oa2se = (OA2SE) getServiceEnvironment();
@@ -47,6 +58,10 @@ public class OA2AdminRegistrationServlet extends AbstractRegistrationServlet {
             throw new ClientRegistrationRetryException("The email address \"" + x + "\" is not valid.", null, client);
         }
         client.setEmail(x);
+        String issuer = getParameter(request, ISSUER_NAME);
+        if (!isEmpty(issuer)) {
+            client.setIssuer(issuer);
+        }
 
         byte[] bytes = new byte[oa2se.getClientSecretLength()];
         random.nextBytes(bytes);
