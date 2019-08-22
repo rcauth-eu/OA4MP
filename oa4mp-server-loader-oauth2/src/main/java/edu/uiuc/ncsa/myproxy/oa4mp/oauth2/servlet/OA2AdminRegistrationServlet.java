@@ -76,6 +76,8 @@ public class OA2AdminRegistrationServlet extends AbstractRegistrationServlet {
         ClientApproval clientApproval = new ClientApproval(client.getIdentifier());
         clientApproval.setApproved(false);
 
+        fireNewClientEvent(client);
+
         info("done with client registration, client=" + client.getIdentifierString());
         return client;
     }
