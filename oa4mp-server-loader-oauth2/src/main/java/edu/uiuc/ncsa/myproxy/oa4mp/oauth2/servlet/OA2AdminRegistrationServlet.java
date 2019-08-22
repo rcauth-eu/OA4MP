@@ -38,6 +38,8 @@ public class OA2AdminRegistrationServlet extends AbstractRegistrationServlet {
 
         if (state.getState() == INITIAL_STATE) {
             request.setAttribute(ISSUER_NAME, ISSUER_NAME);
+            // Next one can be used in a notice to direct standard users to the normal registration endpoint
+            request.setAttribute("regularRegEndpoint", request.getContextPath() + "/register");
         }
     }
 
