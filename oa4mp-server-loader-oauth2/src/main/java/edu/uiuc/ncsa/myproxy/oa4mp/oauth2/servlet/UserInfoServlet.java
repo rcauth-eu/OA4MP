@@ -85,7 +85,9 @@ public class UserInfoServlet extends MyProxyDelegationServlet {
         JSONObject r = new JSONObject();
         r.putAll(json);// new json object so we don't lose information and so we don't get concurrent update error
         // NOTE: need to also strip aud and iss
-        String[] x = new String[]{ISSUED_AT, NONCE,EXPIRATION,EXPIRES_IN,AUTHORIZATION_TIME,ISSUER,AUDIENCE};
+        // NOTE: although RT_EXPIRES_IN is typically not a claim in our implementation, but a return parameter in the
+        // access token response, it might be send as claim in the future since some implementation do.
+        String[] x = new String[]{ISSUED_AT,NONCE,EXPIRATION,RT_EXPIRES_IN,AUTHORIZATION_TIME,ISSUER,AUDIENCE};
         for(String y : x){
             r.remove(y);
         }
