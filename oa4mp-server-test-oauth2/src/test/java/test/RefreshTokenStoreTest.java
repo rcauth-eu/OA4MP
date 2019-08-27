@@ -14,7 +14,7 @@ import edu.uiuc.ncsa.security.util.TestBase;
  * on 3/25/14 at  11:29 AM
  */
 public class RefreshTokenStoreTest extends TestBase {
-    public long EXPIRES_IN = 10000L;
+    public long RT_LIFETIME = 10000L;
 
     public void testFS() throws Exception {
         testRT(TestUtils.getFsStoreProvider().getTransactionStore());
@@ -49,7 +49,7 @@ public class RefreshTokenStoreTest extends TestBase {
         AuthorizationGrant ag = tf2.getAuthorizationGrant(st2.getIdentifierString());
 
         st2.setAuthorizationGrant(ag);
-        st2.setRefreshTokenLifetime(EXPIRES_IN);
+        st2.setRefreshTokenLifetime(RT_LIFETIME);
         tStore.save(st2);
         OA2ServiceTransaction testST = rts.get(rt);
         assert testST.equals(st2) : "Error: created transaction is not fetched faithfully from the store";
