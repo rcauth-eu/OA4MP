@@ -20,19 +20,9 @@ OAuth for MyProxy
     specific features will be pointed out as needed. Note that as of release 3.2, OIDC is the preferred way to
     connect to CILogon and for use by Globus.
 
-Downloads
+Source
 
-* OAuth 2.0 (OpenID Connect)
-
-        * {{{https://github.com/ncsa/OA4MP/releases/tag/v4.0.1}oauth2-server-latest.war}} (Version 4.0.1)
-
-        * {{{https://github.com/ncsa/OA4MP/releases/tag/v4.0.1}oauth2-client-latest.war}} (Version 4.0.1)
-
-* OAuth 1.0a
-
-        * {{{https://github.com/ncsa/OA4MP/releases/tag/v4.0.1}oauth-server-latest.war}}  (Version 4.0.1)
-
-        * {{{https://github.com/ncsa/OA4MP/releases/tag/v4.0.1}oauth-client-latest.war}} (Version 4.0.1)
+        * {{{https://github.com/rcauth-eu/OA4MP/}Github fork for RCauth}}
 
 Documentation
 
@@ -48,6 +38,8 @@ Documentation
 
 
 Related Resources
+
+        *{{{https://github.com/ncsa/OA4MP/}Upstream code base}}
 
         *{{{http://www.cilogon.org/portal-delegation}CILogon portal delegation}} Be sure to read here to get the correct endpoints for
         your client if you are using CILogon.
