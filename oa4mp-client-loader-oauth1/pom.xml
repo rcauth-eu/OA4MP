@@ -41,13 +41,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>edu.uiuc.ncsa.security.delegation</groupId>
-            <artifactId>ncsa-security-delegation-common</artifactId>
-            <version>4.2</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>edu.uiuc.ncsa.security</groupId>
             <artifactId>ncsa-security-util</artifactId>
             <version>4.2</version>

@@ -105,7 +105,7 @@
                     <target>1.8</target>
                     <forceJavacCompilerUse>true</forceJavacCompilerUse>
                 </configuration>
-                <version>3.5.1</version>
+                <version>3.8.1</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -140,7 +140,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9</version>
+                <version>3.1.1</version>
+                <configuration>
+                    <aggregate>true</aggregate>
+                    <use>false</use>
+                </configuration>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
@@ -149,7 +153,10 @@
                         </goals>
                         <configuration>
                             <!-- Java 8 specific or empty javadoc tags make the build fail -->
-                            <additionalparam>-Xdoclint:none</additionalparam>
+                            <doclint>none</doclint>
+                            <!-- for JDK >=10 must source equal to compile source
+                                 see https://bugs.openjdk.java.net/browse/JDK-8212233 -->
+                            <source>1.8</source>
                         </configuration>
 
                     </execution>
@@ -163,15 +170,6 @@
                 <version>6.1.26</version>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9</version>
-                <configuration>
-                    <aggregate>true</aggregate>
-                    <use>false</use>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
     <reporting>
@@ -179,8 +177,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9</version>
+                <version>3.1.1</version>
                 <configuration>
+                    <doclint>none</doclint>
                     <aggregate>true</aggregate>
                     <use>false</use>
                 </configuration>
