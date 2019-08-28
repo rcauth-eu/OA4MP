@@ -7,7 +7,7 @@
 ## Prerequisites
 
 * Java 8+
-* [Maven](https://maven.apache.org/) 3.0+
+* [Maven](https://maven.apache.org/) 3.5+
 
 ## Docs
 
