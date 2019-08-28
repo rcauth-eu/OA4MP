@@ -38,13 +38,13 @@
         </license>
     </licenses>
     <scm>
-        <developerConnection>scm:git:https://github.com/ncsa/OA4MP.git</developerConnection>
-        <connection>scm:git:https://github.com/ncsa/OA4MP.git</connection>
-        <url>https://github.com/ncsa/OA4MP</url>
+        <developerConnection>scm:git:https://github.com/rcauth-eu/OA4MP.git</developerConnection>
+        <connection>scm:git:https://github.com/rcauth-eu/OA4MP.git</connection>
+        <url>https://github.com/rcauth-eu/OA4MP</url>
     </scm>
     <issueManagement>
         <system>GitHub</system>
-        <url>https://github.com/ncsa/OA4MP/issues</url>
+        <url>https://github.com/rcauth-eu/OA4MP/issues</url>
     </issueManagement>
     <developers>
         <developer>
@@ -54,6 +54,13 @@
         <developer>
             <name>Jim Basney</name>
             <email>jbasney@illinois.edu</email>
+        </developer>
+        <developer>
+            <name>Tamas Balogh</name>
+        </developer>
+        <developer>
+            <name>Mischa Sallé</name>
+            <email>msalle@nikhef.nl</email>
         </developer>
     </developers>
 
