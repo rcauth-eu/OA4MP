@@ -22,12 +22,6 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-    <scm>
-        <developerConnection>scm:svn:https://jeff92@svn.code.sf.net/p/cilogon/code/trunk/edu.uiuc.ncsa/myproxy
-        </developerConnection>
-        <connection>scm:svn:https://jeff92@svn.code.sf.net/p/cilogon/code/trunk/edu.uiuc.ncsa/myproxy</connection>
-        <url>scm:svn:https://jeff92@svn.code.sf.net/p/cilogon/code/trunk/edu.uiuc.ncsa/myproxy</url>
-    </scm>
     <developers>
         <developer>
             <name>Jeff Gaynor</name>
