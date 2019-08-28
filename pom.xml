@@ -30,7 +30,7 @@
         </developer>
     </developers>
     <properties>
-        <revision>4.2</revision>
+        <revision>4.2-RCauth-SNAPSHOT</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <additionalparam>-Xdoclint:none</additionalparam>
     </properties>
