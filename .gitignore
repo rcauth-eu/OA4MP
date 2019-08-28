@@ -1,3 +1,5 @@
 # Created by .ignore support plugin (hsz.mobi)
-target
-**/target/**
+# Don't include target directories
+**/target/*
+.idea
+**/*.iml
