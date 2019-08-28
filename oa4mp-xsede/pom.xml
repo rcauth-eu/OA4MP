@@ -8,6 +8,11 @@
         <artifactId>oss-parent</artifactId>
         <version>9</version>
     </parent>
+    <parent>
+        <groupId>edu.uiuc.ncsa.myproxy</groupId>
+        <artifactId>myproxy</artifactId>
+        <version>${revision}</version>
+    </parent>
     <groupId>edu.uiuc.ncsa.myproxy</groupId>
     <artifactId>oa4mp-xsede</artifactId>
     <name>XSEDE OA4MP portal.</name>
@@ -17,12 +22,12 @@
         <dependency>
             <artifactId>oa4mp-server-loader-oauth1</artifactId>
             <groupId>edu.uiuc.ncsa.myproxy</groupId>
-            <version>4.2</version>
+            <version>${revision}</version>
         </dependency>
         <dependency>
             <artifactId>oa4mp-server-api</artifactId>
             <groupId>edu.uiuc.ncsa.myproxy</groupId>
-            <version>4.2</version>
+            <version>${revision}</version>
         </dependency>
     </dependencies>
     <build>
