@@ -23,7 +23,7 @@ Both are requirements for the RCauth.eu codebase, including the RCauth
 2. Check out the right RCauth-based branch, see the different RCauth components for the required versions.  
    For example:
 
-        git checkout 4.2-RCauth
+        git checkout v4.2-RCauth-1
 
    *Make sure to use the same branch or tag for the OA4MP and security-lib components !!*
 
