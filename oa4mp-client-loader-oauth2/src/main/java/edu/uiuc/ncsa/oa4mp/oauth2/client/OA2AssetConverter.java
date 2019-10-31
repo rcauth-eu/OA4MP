@@ -49,8 +49,8 @@ public class OA2AssetConverter extends AssetConverter {
             a.setState(state);
         }
         a.setNonce(map.getString(getASK().nonce()));
-        if (map.containsKey(OA2Claims.ISSUED_AT)) {
-            a.setIssuedAt(map.getDate(OA2Claims.ISSUED_AT));
+        if (map.containsKey(getASK().issuedAt())) {
+            a.setIssuedAt(map.getDate(getASK().issuedAt()));
         }
  
         return a;
@@ -73,7 +73,7 @@ public class OA2AssetConverter extends AssetConverter {
         }
         map.put(getASK().nonce(), a.getNonce());
         if (a.getIssuedAt() != null) {
-            map.put(OA2Claims.ISSUED_AT, a.getIssuedAt());
+            map.put(getASK().issuedAt(), a.getIssuedAt());
         }
 
     }
