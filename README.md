@@ -37,4 +37,4 @@ http://grid.ncsa.illinois.edu/myproxy/oauth/
 
 ## Background and further reading
 
-https://wiki.nikhef.nl/grid/AARC_Pilot
+https://wiki.nikhef.nl/grid/RCauth.eu_and_MasterPortal_documentation
