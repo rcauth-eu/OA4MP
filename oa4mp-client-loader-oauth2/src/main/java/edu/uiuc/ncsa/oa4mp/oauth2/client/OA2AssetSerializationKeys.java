@@ -46,7 +46,7 @@ public class OA2AssetSerializationKeys extends AssetSerializationKeys {
         if(0 < x.length) nonce = x[0];
         return nonce;
     }
-    String issuedAt = "issuedAt";
+    String issuedAt = "issuedat";
     public String issuedAt(String... x){
         if(0 < x.length) issuedAt = x[0];
         return issuedAt;
