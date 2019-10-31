@@ -30,7 +30,7 @@ public class OA2AssetStoreTable extends AssetStoreTable {
         getColumnDescriptor().add(new ColumnDescriptorEntry(ask().refreshLifetime(), BIGINT, true, false));
         getColumnDescriptor().add(new ColumnDescriptorEntry(ask().state(), LONGVARCHAR, true, false));
         getColumnDescriptor().add(new ColumnDescriptorEntry(ask().nonce(), LONGVARCHAR, true, false));
-        getColumnDescriptor().add(new ColumnDescriptorEntry(ask().issuedAt(), Types.DATE, true, false));
+        getColumnDescriptor().add(new ColumnDescriptorEntry(ask().issuedAt(), Types.TIMESTAMP, true, false));
 
     }
 }
