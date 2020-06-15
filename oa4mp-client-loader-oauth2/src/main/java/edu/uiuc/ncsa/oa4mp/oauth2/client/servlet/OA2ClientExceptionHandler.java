@@ -33,6 +33,7 @@ public class OA2ClientExceptionHandler extends ClientExceptionHandler {
 
     @Override
     public void handleException(Throwable t, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        int status = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
         if (t instanceof OA2RedirectableError) {
             OA2RedirectableError oa2RedirectableError = (OA2RedirectableError) t;
             getLogger().warn("Got redirectable error: " + oa2RedirectableError.getMessage() +
@@ -51,6 +52,8 @@ public class OA2ClientExceptionHandler extends ClientExceptionHandler {
             // separated by a line feed.
             ServiceClientHTTPException tt = (ServiceClientHTTPException) t;
             getLogger().warn(t.getClass().getSimpleName() + ": " + t.getMessage() + ", http status code = " + tt.getStatus());
+            // Not ideal, but copy over the HTTP status code from the ServiceClientHTTPException
+            status = tt.getStatus();
 
             if (!tt.hasContent()) {
                 // can't do anything
@@ -62,6 +65,12 @@ public class OA2ClientExceptionHandler extends ClientExceptionHandler {
                     defaultSCXresponse(tt, request);
                 }
             }
+            // Log the error and error description
+            Object error = request.getAttribute("error");
+            Object error_description = request.getAttribute("error_description");
+            getLogger().warn("Forwarding error = \"" +
+                    (error!=null ? error.toString() : "NOT SET") + "\", error_description = \"" +
+                    (error_description!=null ? error_description.toString() : "NOT SET") + "\"");
         } else {
             // fall through. We got some exception from someplace and have to manage it.
             // This is really last ditch.
@@ -72,8 +81,9 @@ public class OA2ClientExceptionHandler extends ClientExceptionHandler {
         }
 
         // Note: we might want to distinguish between failures, especially in case of ServiceClientHTTPException,
-        // but that is hard and in practise we just return the client-error.jsp
-        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        // but that is hard and in practise we just return the client-error.jsp.
+        // Change now to forward the status code of the ServiceClientHTTPException or keep at default 500 for others.
+        response.setStatus(status);
         request.setAttribute("action", getNormalizedContextPath());  // sets return action on error page to this web app.
         getLogger().debug("Forwarding to "+clientServlet.getCE().getErrorPagePath());
         JSPUtil.fwd(request, response, clientServlet.getCE().getErrorPagePath());
