@@ -8,7 +8,7 @@ import edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.ACS2;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.servlet.AbstractAuthorizationServlet.MyMyProxyLogon;
 import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
-import edu.uiuc.ncsa.security.core.exceptions.UnknownClientException;
+import edu.uiuc.ncsa.security.core.exceptions.InvalidTimestampException;
 import edu.uiuc.ncsa.security.core.util.BasicIdentifier;
 import edu.uiuc.ncsa.security.delegation.server.ServiceTransaction;
 import edu.uiuc.ncsa.security.delegation.server.request.IssuerResponse;
@@ -16,7 +16,7 @@ import edu.uiuc.ncsa.security.delegation.servlet.TransactionState;
 import edu.uiuc.ncsa.security.delegation.storage.Client;
 import edu.uiuc.ncsa.security.delegation.token.AccessToken;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2Errors;
-import edu.uiuc.ncsa.security.oauth_2_0.OA2GeneralError;
+import edu.uiuc.ncsa.security.oauth_2_0.OA2ATException;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2Scopes;
 import edu.uiuc.ncsa.security.oauth_2_0.server.PAIResponse2;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -48,12 +48,12 @@ public class OA2CertServlet extends ACS2 {
         }
         List<String> bearerTokens = HeaderUtils.getAuthHeader(request, "Bearer");
         if (bearerTokens.isEmpty()) {
-            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+            throw new OA2ATException(OA2Errors.INVALID_REQUEST,
                                       "Error: No access token",
                                       HttpStatus.SC_BAD_REQUEST);
         }
         if (1 < bearerTokens.size()) {
-            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+            throw new OA2ATException(OA2Errors.INVALID_REQUEST,
                                       "Error: too many access tokens",
                                       HttpStatus.SC_BAD_REQUEST);
         }
@@ -82,29 +82,31 @@ public class OA2CertServlet extends ACS2 {
                 rawSecret = basicTokens[HeaderUtils.SECRET_INDEX];
             } catch (UnsupportedEncodingException e) {
                 // Note: we don't catch other exceptions: they can be thrown directly
-                throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+                throw new OA2ATException(OA2Errors.INVALID_REQUEST,
                                           "Could not parse the Basic authorization header for client ID/secret.",
                                           HttpStatus.SC_BAD_REQUEST);
             }
         }
         if (rawID == null) {
             // Note: UnknownClientException is handled in OA2ExceptionHandler as an OA2GeneralError() with an INVALID_REQUEST
-            throw new UnknownClientException("No client id");
+            throw new OA2ATException(OA2Errors.INVALID_REQUEST,
+                                     "No client id",
+                                     HttpStatus.SC_BAD_REQUEST);
         }
         Identifier id = BasicIdentifier.newID(rawID);
         OA2Client client = (OA2Client) getClient(id);
         if(client.isPublicClient()){
-            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+            throw new OA2ATException(OA2Errors.INVALID_REQUEST,
                                       "Error: public clients not supported for this operation.",
                                       HttpStatus.SC_BAD_REQUEST);
         }
         if (rawSecret == null) {
-            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+            throw new OA2ATException(OA2Errors.INVALID_REQUEST,
                                       "Error: No client secret",
                                       HttpStatus.SC_BAD_REQUEST);
         }
         if (!client.getSecret().equals(DigestUtils.shaHex(rawSecret))) {
-            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+            throw new OA2ATException(OA2Errors.INVALID_REQUEST,
                                       "Error: Secret is incorrect. request refused.",
                                       HttpStatus.SC_FORBIDDEN);
         }
@@ -118,13 +120,13 @@ public class OA2CertServlet extends ACS2 {
         // CIL-404 fix. Throw appropriate exceptions. Do not use the callback mechanism from OAuth for errors since that returns
         // an HTTP status code of 200 with no other information.
         if (t == null || !t.isAccessTokenValid()) {
-            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+            throw new OA2ATException(OA2Errors.INVALID_REQUEST,
                                       "Invalid access token. Request refused",
                                       HttpStatus.SC_FORBIDDEN);
         }
         if (!t.getScopes().contains(OA2Scopes.SCOPE_MYPROXY)) {
             // Note that this requires a state, but none is sent in the OA4MP cert request.
-            throw new OA2GeneralError(OA2Errors.INVALID_REQUEST,
+            throw new OA2ATException(OA2Errors.INVALID_REQUEST,
                                       "Missing scope for certificate request",
                                       HttpStatus.SC_BAD_REQUEST);
         }
@@ -132,7 +134,11 @@ public class OA2CertServlet extends ACS2 {
         checkClientApproval(t.getClient());
         // Access tokens must be valid in order to get a cert. If the token is invalid, the user must
         // get a valid one using the refresh token.
-        checkTimestamp(accessToken.getToken());
+        try {
+            checkTimestamp(accessToken.getToken());
+        } catch (InvalidTimestampException e) {
+            throw new OA2ATException(OA2Errors.INVALID_REQUEST, e.getMessage(), HttpStatus.SC_FORBIDDEN);
+        }
         return t;
     }
 
