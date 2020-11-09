@@ -27,7 +27,7 @@
     <skin>
       <groupId>edu.uiuc.ncsa.maven.skin</groupId>
       <artifactId>oa4mp-skin</artifactId>
-      <version>4.2-RCauth-SNAPSHOT</version>
+      <version>4.2-RCauth-1.1</version>
     </skin>
     <custom>
 
