@@ -6,7 +6,7 @@ import edu.uiuc.ncsa.myproxy.oa4mp.server.OA4MPServiceTransaction;
 import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.delegation.token.AuthorizationGrant;
 import edu.uiuc.ncsa.security.delegation.token.RefreshToken;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONObject;
 
 import java.security.KeyPair;
 import java.util.ArrayList;

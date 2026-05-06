@@ -8,7 +8,7 @@ import edu.uiuc.ncsa.security.util.jwk.JSONWebKey;
 import edu.uiuc.ncsa.security.util.jwk.JSONWebKeyUtil;
 import edu.uiuc.ncsa.security.util.jwk.JSONWebKeys;
 import edu.uiuc.ncsa.security.util.pkcs.KeyUtil;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONObject;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.File;

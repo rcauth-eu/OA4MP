@@ -7,7 +7,7 @@ import edu.uiuc.ncsa.security.delegation.server.ExceptionWrapper;
 import edu.uiuc.ncsa.security.delegation.server.UnapprovedClientException;
 import edu.uiuc.ncsa.security.oauth_2_0.*;
 import edu.uiuc.ncsa.security.servlet.ExceptionHandler;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONObject;
 import org.apache.http.HttpStatus;
 
 import javax.servlet.ServletException;

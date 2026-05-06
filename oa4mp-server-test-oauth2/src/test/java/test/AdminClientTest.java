@@ -3,7 +3,7 @@ package test;
 import edu.uiuc.ncsa.myproxy.oa4mp.TestUtils;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.adminClient.*;
 import edu.uiuc.ncsa.security.util.TestBase;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONObject;
 
 /**
  * <p>Created by Jeff Gaynor<br>

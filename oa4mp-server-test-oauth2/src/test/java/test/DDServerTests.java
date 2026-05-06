@@ -20,8 +20,8 @@ import edu.uiuc.ncsa.security.delegation.storage.impl.BaseClientConverter;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2Scopes;
 import edu.uiuc.ncsa.security.oauth_2_0.server.config.LDAPConfiguration;
 import junit.framework.TestCase;
-import net.sf.json.JSONObject;
-import net.sf.json.util.JSONUtils;
+import org.kordamp.json.JSONObject;
+import org.kordamp.json.util.JSONUtils;
 import org.apache.commons.codec.binary.Base64;
 
 import java.security.SecureRandom;

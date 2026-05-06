@@ -2,7 +2,7 @@ package edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.claims.GroupElement;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.claims.Groups;
-import net.sf.json.JSONArray;
+import org.kordamp.json.JSONArray;
 
 /**
  * This takes a list of attributes from an LDAP handler and converts it into a regularized

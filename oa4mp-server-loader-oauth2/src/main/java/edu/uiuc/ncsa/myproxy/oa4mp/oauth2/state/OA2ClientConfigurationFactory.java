@@ -17,8 +17,8 @@ import edu.uiuc.ncsa.security.util.functor.JFunctorFactory;
 import edu.uiuc.ncsa.security.util.functor.LogicBlock;
 import edu.uiuc.ncsa.security.util.functor.logic.jThen;
 import edu.uiuc.ncsa.security.util.functor.parser.Script;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONArray;
+import org.kordamp.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.LinkedList;

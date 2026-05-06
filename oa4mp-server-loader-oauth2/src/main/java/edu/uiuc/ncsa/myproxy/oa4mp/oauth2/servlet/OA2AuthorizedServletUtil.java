@@ -20,7 +20,7 @@ import edu.uiuc.ncsa.security.delegation.token.AuthorizationGrant;
 import edu.uiuc.ncsa.security.oauth_2_0.*;
 import edu.uiuc.ncsa.security.oauth_2_0.server.claims.OA2Claims;
 //import edu.uiuc.ncsa.security.servlet.ServletDebugUtil;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONObject;
 import org.apache.http.HttpStatus;
 
 import javax.servlet.http.HttpServletRequest;

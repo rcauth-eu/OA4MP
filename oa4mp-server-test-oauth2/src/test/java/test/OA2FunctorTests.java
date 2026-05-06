@@ -13,8 +13,8 @@ import edu.uiuc.ncsa.security.oauth_2_0.server.claims.ClaimSourceConfigurationUt
 import edu.uiuc.ncsa.security.util.JFunctorTest;
 import edu.uiuc.ncsa.security.util.functor.*;
 import edu.uiuc.ncsa.security.util.functor.logic.*;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONArray;
+import org.kordamp.json.JSONObject;
 import org.junit.Test;
 
 import java.util.ArrayList;

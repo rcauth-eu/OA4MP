@@ -1,7 +1,7 @@
 package edu.uiuc.ncsa.myproxy.oa4mp.server.admin.things;
 
 import edu.uiuc.ncsa.security.delegation.storage.BaseClient;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONObject;
 
 /**
  * <p>Created by Jeff Gaynor<br>

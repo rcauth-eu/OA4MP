@@ -10,9 +10,9 @@ import edu.uiuc.ncsa.security.delegation.token.RefreshToken;
 import edu.uiuc.ncsa.security.delegation.token.TokenForge;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2TokenForge;
 import edu.uiuc.ncsa.security.storage.data.ConversionMap;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import net.sf.json.JSONSerializer;
+import org.kordamp.json.JSONArray;
+import org.kordamp.json.JSONObject;
+import org.kordamp.json.JSONSerializer;
 
 import java.util.Collection;
 

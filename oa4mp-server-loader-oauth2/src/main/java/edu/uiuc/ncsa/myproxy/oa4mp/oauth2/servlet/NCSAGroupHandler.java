@@ -2,7 +2,7 @@ package edu.uiuc.ncsa.myproxy.oa4mp.oauth2.servlet;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.claims.Groups;
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.claims.LDAPClaimsSource;
-import net.sf.json.JSONArray;
+import org.kordamp.json.JSONArray;
 
 import javax.naming.ldap.LdapContext;
 

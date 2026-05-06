@@ -11,7 +11,7 @@ import edu.uiuc.ncsa.security.storage.data.ConversionMap;
 import edu.uiuc.ncsa.security.storage.data.SerializationKeys;
 import edu.uiuc.ncsa.security.util.pkcs.CertUtil;
 import edu.uiuc.ncsa.security.util.pkcs.MyPKCS10CertRequest;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONObject;
 
 import java.net.URI;
 

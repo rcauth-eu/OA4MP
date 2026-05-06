@@ -1,6 +1,6 @@
 package edu.uiuc.ncsa.myproxy.oa4mp.server.admin.things;
 
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONObject;
 
 /**
  * Parses JSON strings into objects for the Client Manager.

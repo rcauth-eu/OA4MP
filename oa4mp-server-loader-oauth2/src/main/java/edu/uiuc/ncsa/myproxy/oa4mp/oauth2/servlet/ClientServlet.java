@@ -10,10 +10,10 @@ import edu.uiuc.ncsa.security.core.util.DebugUtil;
 import edu.uiuc.ncsa.security.delegation.services.Response;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2ATException;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2Errors;
-import net.sf.json.JSON;
-import net.sf.json.JSONException;
-import net.sf.json.JSONObject;
-import net.sf.json.JSONSerializer;
+import org.kordamp.json.JSON;
+import org.kordamp.json.JSONException;
+import org.kordamp.json.JSONObject;
+import org.kordamp.json.JSONSerializer;
 import org.apache.http.HttpStatus;
 
 import javax.servlet.ServletException;

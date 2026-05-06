@@ -17,7 +17,7 @@ import edu.uiuc.ncsa.security.oauth_2_0.UserInfo;
 import edu.uiuc.ncsa.security.oauth_2_0.client.ATResponse2;
 import edu.uiuc.ncsa.security.util.cli.InputLine;
 import edu.uiuc.ncsa.security.util.pkcs.CertUtil;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONObject;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;

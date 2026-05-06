@@ -27,7 +27,7 @@ import edu.uiuc.ncsa.security.oauth_2_0.server.RTIResponse;
 import edu.uiuc.ncsa.security.oauth_2_0.server.claims.ClaimSource;
 import edu.uiuc.ncsa.security.oauth_2_0.server.claims.ClaimSourceFactory;
 import edu.uiuc.ncsa.security.servlet.ServletDebugUtil;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONObject;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpStatus;
 
@@ -81,7 +81,7 @@ public class OA2ATServlet extends AbstractAccessTokenServlet {
         populateClaims(state.getRequest(), p, st);
     }
 
-    protected Map<String, String> populateClaims(HttpServletRequest request, Map<String, String> p, OA2ServiceTransaction st) {
+    protected JSONObject populateClaims(HttpServletRequest request, Map<String, String> p, OA2ServiceTransaction st) {
         OA2SE oa2se = (OA2SE) getServiceEnvironment();
         OA2ClaimsUtil claimsUtil = new OA2ClaimsUtil(oa2se, st);
         // Every time there is a refresh, you must reinitialize the claims to have the right timestamps or

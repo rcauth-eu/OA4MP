@@ -4,7 +4,7 @@ import edu.uiuc.ncsa.security.core.IdentifiableProvider;
 import edu.uiuc.ncsa.security.delegation.storage.impl.BaseClientConverter;
 import edu.uiuc.ncsa.security.storage.data.ConversionMap;
 import edu.uiuc.ncsa.security.storage.data.SerializationKeys;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONObject;
 
 /**
  * <p>Created by Jeff Gaynor<br>

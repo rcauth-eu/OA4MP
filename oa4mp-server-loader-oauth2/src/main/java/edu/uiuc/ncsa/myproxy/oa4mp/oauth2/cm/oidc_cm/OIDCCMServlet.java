@@ -16,10 +16,11 @@ import edu.uiuc.ncsa.security.oauth_2_0.OA2Constants;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2Errors;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2GeneralError;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2Scopes;
-import net.sf.json.JSON;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-import net.sf.json.JSONSerializer;
+import edu.uiuc.ncsa.security.util.json.MyJSONUtil;
+import org.kordamp.json.JSON;
+import org.kordamp.json.JSONArray;
+import org.kordamp.json.JSONObject;
+import org.kordamp.json.JSONSerializer;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpStatus;
@@ -182,7 +183,7 @@ public class OIDCCMServlet extends EnvServlet {
                     HttpStatus.SC_BAD_REQUEST);
         }
         JSONArray redirectURIs = jsonRequest.getJSONArray(OIDCCMConstants.REDIRECT_URIS);
-        client.setCallbackURIs(redirectURIs);
+        client.setCallbackURIs(MyJSONUtil.arraytoList(redirectURIs));
         jsonRequest.remove(OIDCCMConstants.REDIRECT_URIS);
         // Now we do the stuff we think we need.
         if (!jsonRequest.containsKey(OIDCCMConstants.CLIENT_NAME)) {
@@ -199,7 +200,7 @@ public class OIDCCMServlet extends EnvServlet {
             }
             // alternately, no scopes are set/required.
         } else {
-            client.setScopes(jsonRequest.getJSONArray(OA2Constants.SCOPE));
+            client.setScopes(MyJSONUtil.arraytoList(jsonRequest.getJSONArray(OA2Constants.SCOPE)));
         }
         jsonRequest.remove(OA2Constants.SCOPE);
         byte[] bytes = new byte[getOA2SE().getClientSecretLength()];

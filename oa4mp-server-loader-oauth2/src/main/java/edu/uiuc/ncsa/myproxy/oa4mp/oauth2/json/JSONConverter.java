@@ -5,7 +5,7 @@ import edu.uiuc.ncsa.security.storage.data.ConversionMap;
 import edu.uiuc.ncsa.security.storage.data.MapConverter;
 import edu.uiuc.ncsa.security.storage.data.SerializationKeys;
 import edu.uiuc.ncsa.security.util.json.JSONEntry;
-import net.sf.json.JSON;
+import org.kordamp.json.JSON;
 
 import java.util.Date;
 

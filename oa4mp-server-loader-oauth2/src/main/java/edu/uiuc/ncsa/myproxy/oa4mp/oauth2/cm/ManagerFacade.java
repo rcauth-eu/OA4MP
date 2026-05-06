@@ -21,7 +21,7 @@ import edu.uiuc.ncsa.security.core.util.DebugUtil;
 import edu.uiuc.ncsa.security.delegation.server.storage.BaseClientStore;
 import edu.uiuc.ncsa.security.delegation.services.Response;
 import edu.uiuc.ncsa.security.delegation.storage.BaseClient;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONObject;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import static edu.uiuc.ncsa.myproxy.oa4mp.server.admin.things.SATFactory.*;

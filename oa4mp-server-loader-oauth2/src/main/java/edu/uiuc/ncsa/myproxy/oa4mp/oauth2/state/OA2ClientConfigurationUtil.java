@@ -7,9 +7,9 @@ import edu.uiuc.ncsa.security.oauth_2_0.server.config.ClientConfigurationUtil;
 import edu.uiuc.ncsa.security.util.functor.FunctorTypeImpl;
 import edu.uiuc.ncsa.security.util.functor.LogicBlock;
 import edu.uiuc.ncsa.security.util.functor.LogicBlocks;
-import net.sf.json.JSON;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSON;
+import org.kordamp.json.JSONArray;
+import org.kordamp.json.JSONObject;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;

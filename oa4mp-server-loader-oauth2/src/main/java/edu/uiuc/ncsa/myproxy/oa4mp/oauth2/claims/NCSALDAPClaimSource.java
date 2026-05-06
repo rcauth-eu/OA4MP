@@ -5,7 +5,7 @@ import edu.uiuc.ncsa.security.core.util.MyLoggingFacade;
 import edu.uiuc.ncsa.security.oauth_2_0.server.claims.OA2Claims;
 import edu.uiuc.ncsa.security.oauth_2_0.server.config.LDAPConfiguration;
 import edu.uiuc.ncsa.security.oauth_2_0.server.config.LDAPConfigurationUtil;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONObject;
 
 /**
  * An {@link LDAPClaimsSource} for the NCSA. This has the more common  defaults.

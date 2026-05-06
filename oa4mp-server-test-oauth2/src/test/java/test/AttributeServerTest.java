@@ -12,8 +12,8 @@ import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.things.actions.ActionRemove;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.things.actions.ActionSet;
 import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.things.types.TypeAttribute;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2Scopes;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONArray;
+import org.kordamp.json.JSONObject;
 
 import java.util.LinkedList;
 

@@ -3,7 +3,7 @@ package edu.uiuc.ncsa.myproxy.oa4mp.oauth2.claims;
 import edu.uiuc.ncsa.security.core.exceptions.NFWException;
 import edu.uiuc.ncsa.security.oauth_2_0.server.claims.OA2Claims;
 import edu.uiuc.ncsa.security.util.functor.JFunctor;
-import net.sf.json.JSONArray;
+import org.kordamp.json.JSONArray;
 
 import java.util.ArrayList;
 import java.util.Map;

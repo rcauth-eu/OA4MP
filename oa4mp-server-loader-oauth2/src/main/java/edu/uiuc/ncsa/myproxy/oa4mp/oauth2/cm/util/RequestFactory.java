@@ -15,9 +15,9 @@ import edu.uiuc.ncsa.myproxy.oa4mp.server.admin.things.types.*;
 import edu.uiuc.ncsa.security.core.exceptions.GeneralException;
 import edu.uiuc.ncsa.security.core.exceptions.NFWException;
 import edu.uiuc.ncsa.security.delegation.storage.BaseClient;
-import net.sf.json.JSON;
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSON;
+import org.kordamp.json.JSONArray;
+import org.kordamp.json.JSONObject;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;

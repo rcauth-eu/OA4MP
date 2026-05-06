@@ -8,7 +8,7 @@ import edu.uiuc.ncsa.security.oauth_2_0.server.config.LDAPConfigurationUtil;
 import edu.uiuc.ncsa.security.util.ssl.MyTrustManager;
 import edu.uiuc.ncsa.security.util.ssl.SSLConfiguration;
 import edu.uiuc.ncsa.security.util.ssl.SSLConfigurationUtil;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONObject;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 
 import javax.net.SocketFactory;

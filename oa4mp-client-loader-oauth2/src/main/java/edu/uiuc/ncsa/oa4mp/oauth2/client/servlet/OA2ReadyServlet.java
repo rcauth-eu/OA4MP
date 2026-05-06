@@ -19,8 +19,8 @@ import edu.uiuc.ncsa.security.util.jwk.JSONWebKey;
 import edu.uiuc.ncsa.security.util.jwk.JSONWebKeys;
 import edu.uiuc.ncsa.security.util.pkcs.CertUtil;
 import edu.uiuc.ncsa.security.util.pkcs.KeyUtil;
-import net.sf.json.JSONObject;
-import net.sf.json.util.JSONUtils;
+import org.kordamp.json.JSONObject;
+import org.kordamp.json.util.JSONUtils;
 import org.apache.commons.codec.binary.Base64;
 
 import javax.servlet.http.HttpServletRequest;

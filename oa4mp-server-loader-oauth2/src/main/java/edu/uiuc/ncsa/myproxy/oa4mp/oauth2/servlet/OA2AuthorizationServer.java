@@ -14,7 +14,7 @@ import edu.uiuc.ncsa.security.oauth_2_0.OA2Constants;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2Errors;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2GeneralError;
 import edu.uiuc.ncsa.security.servlet.PresentableState;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONObject;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;

@@ -2,7 +2,7 @@ package edu.uiuc.ncsa.myproxy.oa4mp.oauth2.flows;
 
 import edu.uiuc.ncsa.security.util.functor.JFunctor;
 import edu.uiuc.ncsa.security.util.functor.logic.FunctorMap;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONObject;
 
 import static edu.uiuc.ncsa.myproxy.oa4mp.oauth2.flows.FlowType.*;
 

@@ -12,7 +12,7 @@ import edu.uiuc.ncsa.security.oauth_2_0.server.claims.ClaimSourceConfiguration;
 import edu.uiuc.ncsa.security.oauth_2_0.server.claims.OA2Claims;
 import edu.uiuc.ncsa.security.oauth_2_0.server.config.JSONClaimSourceConfig;
 import edu.uiuc.ncsa.security.util.functor.parser.Script;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;

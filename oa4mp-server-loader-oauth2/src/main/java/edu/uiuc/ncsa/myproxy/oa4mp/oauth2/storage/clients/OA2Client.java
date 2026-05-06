@@ -4,7 +4,7 @@ import edu.uiuc.ncsa.security.core.Identifier;
 import edu.uiuc.ncsa.security.delegation.storage.BaseClient;
 import edu.uiuc.ncsa.security.delegation.storage.Client;
 import edu.uiuc.ncsa.security.oauth_2_0.server.config.LDAPConfiguration;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONObject;
 
 import java.util.Collection;
 import java.util.LinkedList;

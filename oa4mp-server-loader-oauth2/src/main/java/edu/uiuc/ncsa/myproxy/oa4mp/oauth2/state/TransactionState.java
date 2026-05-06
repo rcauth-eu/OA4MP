@@ -2,7 +2,7 @@ package edu.uiuc.ncsa.myproxy.oa4mp.oauth2.state;
 
 import edu.uiuc.ncsa.myproxy.oa4mp.oauth2.flows.FlowStates;
 import edu.uiuc.ncsa.security.oauth_2_0.OA2Constants;
-import net.sf.json.JSONObject;
+import org.kordamp.json.JSONObject;
 
 /**
  * This is a container for mutable state per transaction.
