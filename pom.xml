@@ -30,8 +30,8 @@
         </developer>
     </developers>
     <properties>
-        <revision>4.2-RCauth-SNAPSHOT</revision>
-        <seclibVersion>4.2-RCauth-SNAPSHOT</seclibVersion>
+        <revision>4.2-RCauth-1.6</revision>
+        <seclibVersion>4.2-RCauth-1.5</seclibVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <additionalparam>-Xdoclint:none</additionalparam>
     </properties>
